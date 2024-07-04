@@ -1,11 +1,8 @@
 import os, environ
 from datetime import timedelta
 from pathlib import Path
-
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False)
-)
+from dotenv import load_dotenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +21,7 @@ SSL_CA = str(BASE_DIR / 'microsoftrsa-root-certificate-authority.crt')
 SECRET_KEY = 'django-insecure-8l_0f3hgd6nrfbv=z98ua_tetq-knc9q71pra#hu-p6^y^2i7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -83,11 +80,11 @@ WSGI_APPLICATION = 'copilot.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'copilot',            
-        'USER': 'postgres',           
-        'PASSWORD': 'postgres', 
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME'),            
+        'USER': os.getenv('DB_USER'),           
+        'PASSWORD': os.getenv('DB_PASSWORD'), 
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
         # 'OPTIONS': {
         #     'ssl_ca': SSL_CA,  
         #     'ssl_disabled': False,
