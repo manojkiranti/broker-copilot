@@ -1,4 +1,4 @@
-import os, environ
+import os
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
@@ -6,9 +6,6 @@ load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Define log file path
 LOG_FILE = os.path.join(BASE_DIR, 'app.log')
@@ -46,7 +43,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -85,10 +82,6 @@ DATABASES = {
         'PASSWORD': os.getenv('DB_PASSWORD'), 
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
-        # 'OPTIONS': {
-        #     'ssl_ca': SSL_CA,  
-        #     'ssl_disabled': False,
-        # },
     }
 }
 

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OAuth Callback</title>
+    <script>
+        async function exchangeCodeForToken() {
+            const code = "{{ code }}";
+            console.log('Authorization Code:', code);
+            if (code) {
+                try {
+                    const response = await fetch('http://127.0.0.1:8000/api/auth/google-verify-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ code }),
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Access Token:', data.access_token);
+                        console.log('User Info:', data.userinfo);
+                        // Store the token or user info as needed
+                        localStorage.setItem('access_token', data.access_token);
+                        // Redirect to another page after successful authentication
+                        // window.location.href = '/profile';
+                    } else {
+                        console.error('Failed to exchange code for token');
+                    }
+                } catch (error) {
+                    console.error('Error exchanging code for token:', error);
+                }
+            }
+        }
+
+        window.onload = exchangeCodeForToken;
+    </script>
+</head>
+<body>
+    <h1>Handling OAuth Callback...</h1>
+    <p>Authorization Code: {{ code }}</p>
+</body>
+</html>
