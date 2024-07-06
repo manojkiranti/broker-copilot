@@ -1,42 +1,49 @@
 import logging
-logger = logging.getLogger(__name__)
 from rest_framework import serializers
-from .authenticator import TokenValidator
+from django.db.models import Q
 from django.contrib.auth import get_user_model
+
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
+def authenticate_user(email=None, password=None):
+    try:
+        user = User.objects.get(email=email)
+        if user.check_password(password):
+            return user
+    except User.DoesNotExist:
+        logger.error(f"User with email {email} does not exist.")
+    return None
 
-class OAuthUserLoginSerializer(serializers.Serializer):
-    oauth_type = serializers.IntegerField()
-    token = serializers.CharField()
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(max_length=255)
 
     def validate(self, data):
-        oauth_type = data.get('oauth_type')
-        token = data.get('token')
+        username = data.get('username')
+        password = data.get('password')
 
-        validator = TokenValidator()
+        if not username or not password:
+            raise serializers.ValidationError('Please provide email and password')
 
-        try:
-            # Validate and decode token
-            decoded_token = validator.validate_token(token)
-            email = decoded_token.get('preferred_username')
+        user = User.objects.filter(Q(username=username) | Q(email=username)).first()
 
-            # Validate for Microsoft OAuth specific requirements
-            if oauth_type != User.OauthType.MICROSOFT:
-                logger.error('Invalid Outlook OAuth type')
-                raise serializers.ValidationError('Invalid Outlook OAuth type')
+        if not user:
+            raise serializers.ValidationError('Please provide correct username or email address')
 
-            # Check if user already exists based on email
-            user = User.objects.filter(email=email).first()
+        if user.oauth_type != 0 and user.password is None:
+            raise serializers.ValidationError('Please try to login with registered social account')
 
-            if user:
-                data['user'] = user
-            else:
-                # Create a new user if not exists
-                user = User.objects.create_user(email=email)
-                data['user'] = user
-            return data
+        authenticated_user = authenticate_user(email=user.email, password=password)
 
-        except ValueError as e:
-            logger.error(str(e))
-            raise serializers.ValidationError(str(e))
+        if not authenticated_user:
+            raise serializers.ValidationError('The email and password is not registered')
+
+        data['user'] = authenticated_user
+        return data
+
+class GoogleVerifyCodeForTokenSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=255)
+
+class GoogleVerifyAccessTokenSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=555)

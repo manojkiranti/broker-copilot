@@ -1,7 +1,37 @@
-import httpx
+import httpx, requests
 from authlib.jose import jwt
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model, login
+User = get_user_model()
 
-class TokenValidator:
+
+class GoogleOAuthHandler(APIView):
+    permission_classes = (AllowAny, )
+
+    def get_userinfo(self, access_token):
+        userinfo_endpoint = 'https://www.googleapis.com/oauth2/v1/userinfo'
+        response = requests.get(userinfo_endpoint, headers={'Authorization': f'Bearer {access_token}'})
+        response.raise_for_status()
+        return response.json()
+
+    def login_or_create_user(self, request, email, fullname):
+        user = User.objects.filter(email=email).first()
+        if not user:
+            user = User.objects.create_user(email=email, fullname=fullname, oauth_type=3)
+            user.save()
+        login(request, user)
+        refresh = RefreshToken.for_user(user)
+        return {
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh),
+            'email': user.email,
+            'is_active': user.is_active,
+            'is_admin': user.is_admin,
+        }
+
+class MicrosoftTokenValidator :
     def __init__(self):
         self.public_keys = None
 
@@ -39,5 +69,5 @@ class TokenValidator:
             return decoded_token
         except Exception as e:
             raise ValueError(f'JWT validation failed: {str(e)}')
-        except Exception as e:
+        except:
             raise ValueError(f'Unexpected error during token validation: {str(e)}')

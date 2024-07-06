@@ -9,7 +9,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Define log file path
 LOG_FILE = os.path.join(BASE_DIR, 'app.log')
-SSL_CA = str(BASE_DIR / 'microsoftrsa-root-certificate-authority.crt')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -18,7 +17,7 @@ SSL_CA = str(BASE_DIR / 'microsoftrsa-root-certificate-authority.crt')
 SECRET_KEY = 'django-insecure-8l_0f3hgd6nrfbv=z98ua_tetq-knc9q71pra#hu-p6^y^2i7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -135,15 +134,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "storages.backends.azure_storage.AzureStorage",
-#         "OPTIONS": {
-#           'timeout': 20,
-#           "expiration_secs": 500,
-#         },
-#     },
-# }
+# Azure Storage settings
+AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
+AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
+AZURE_STATIC_CONTAINER = os.getenv('AZURE_CONTAINER')
+AZURE_MEDIA_CONTAINER = os.getenv('AZURE_CONTAINER')
+AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
+
+if not DEBUG:
+    STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/'
+    MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/'
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                "account_name": AZURE_ACCOUNT_NAME,
+                "account_key": AZURE_ACCOUNT_KEY,
+                "azure_container": AZURE_MEDIA_CONTAINER,
+                "expiration_secs": None,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                "account_name": AZURE_ACCOUNT_NAME,
+                "account_key": AZURE_ACCOUNT_KEY,
+                "azure_container": AZURE_STATIC_CONTAINER,
+                "expiration_secs": None,
+            },
+        },
+    }
 
 
 REST_FRAMEWORK = {
@@ -197,8 +218,3 @@ TIME_ZONE = 'Asia/Kathmandu'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = False
-
-
-AZURE_CONTAINER='' 
-AZURE_ACCOUNT_NAME='' 
-AZURE_ACCOUNT_KEY='' 

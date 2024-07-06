@@ -39,6 +39,7 @@ class User(AbstractBaseUser):
         DEFAULT = 0, _('Default')
         FACEBOOK = 1, _('Facebook')
         MICROSOFT = 2, _('Microsoft')
+        GOOGLE = 3, _('Google')
 
     GENDER_TYPE = (
         ('male', 'male'),
