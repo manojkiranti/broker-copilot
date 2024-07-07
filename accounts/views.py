@@ -3,6 +3,7 @@ import requests
 from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from requests_oauthlib import OAuth2Session
@@ -87,6 +88,11 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
                 return Response({
                     "error": "Failed to obtain access token from Google."
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+        except ValidationError as e:
+            return Response({
+                "error": str(e.message)
+            }, status=status.HTTP_403_FORBIDDEN)
         except requests.RequestException as e:
             return Response({
                 "error": "Failed to obtain token from Google.",

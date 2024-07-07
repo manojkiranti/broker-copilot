@@ -1,9 +1,14 @@
 import httpx
 import requests
+import os
 from authlib.jose import jwt
 from rest_framework.views import APIView
+from django.core.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+from rest_framework import status
+
 from django.contrib.auth import get_user_model, login
 User = get_user_model()
 
@@ -19,8 +24,16 @@ class GoogleOAuthHandler(APIView):
         return response.json()
 
     def login_or_create_user(self, request, id, email, name):
+        
         user = User.objects.filter(oauth_id=id).first()
+        check_domain =  os.getenv('CHECK_DOMAIN')
         if not user:
+            if check_domain:                
+                domain = email.split('@')[-1]  # Get the part after '@'
+                
+                # Check if the domain is the expected one
+                if domain != 'odinmortgage.com':
+                    raise ValidationError("Registration is restricted to users with an @odinmortgage.com email address.")
             user = User.objects.create_user(
                 email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()
