@@ -16,9 +16,6 @@ from .serializers import (
     GoogleVerifyCodeForTokenSerializer
 )
 from .authenticator import GoogleOAuthHandler
-import logging
-
-logging.basicConfig(level=logging.DEBUG)
 
 User = get_user_model()
 class UserLoginView(APIView):
@@ -84,7 +81,7 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
             if userinfo:
                 response_data = self.login_or_create_user(request, userinfo['id'], userinfo['email'], userinfo.get('name', ''))
                 response = Response(response_data, status=status.HTTP_200_OK)
-                response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
+                # response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
                 return response
             else:
                 return Response({
@@ -112,7 +109,7 @@ class GoogleVerifyAccessToken(GoogleOAuthHandler):
             userinfo = self.get_userinfo(serializer.validated_data['token'])
             response_data = self.login_or_create_user(request, userinfo['id'], userinfo['email'], userinfo.get('name', ''))
             response = Response(response_data, status=status.HTTP_200_OK)
-            response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
+            # response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
             return response
         except requests.RequestException as e:
             return Response({
