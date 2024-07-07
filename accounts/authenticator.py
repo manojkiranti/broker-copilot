@@ -27,6 +27,7 @@ class GoogleOAuthHandler(APIView):
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh),
             'email': user.email,
+            'name': user.fullname,
             'is_active': user.is_active,
             'is_admin': user.is_admin,
         }

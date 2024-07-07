@@ -50,7 +50,9 @@ class GenerateGoogleSignInLink(APIView):
         auth_url = 'https://accounts.google.com/o/oauth2/auth?' + '&'.join(f'{key}={val}' for key, val in auth_params.items())
         return Response({
             "success": True,
-            "google_signin_link": auth_url
+            "data": {
+                "google_signin_link": auth_url
+            }
         }, status=status.HTTP_200_OK)
 
 
