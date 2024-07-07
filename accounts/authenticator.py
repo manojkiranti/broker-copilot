@@ -16,10 +16,10 @@ class GoogleOAuthHandler(APIView):
         response.raise_for_status()
         return response.json()
 
-    def login_or_create_user(self, request, email, fullname):
-        user = User.objects.filter(email=email).first()
+    def login_or_create_user(self, request, id, email, name):
+        user = User.objects.filter(oauth_id=id).first()
         if not user:
-            user = User.objects.create_user(email=email, fullname=fullname, oauth_type=3)
+            user = User.objects.create_user(email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()
         login(request, user)
         refresh = RefreshToken.for_user(user)
@@ -27,6 +27,7 @@ class GoogleOAuthHandler(APIView):
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh),
             'email': user.email,
+            'name': user.fullname,
             'is_active': user.is_active,
             'is_admin': user.is_admin,
         }
