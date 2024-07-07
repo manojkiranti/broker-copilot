@@ -17,7 +17,6 @@ from .serializers import (
 from .authenticator import GoogleOAuthHandler
 
 User = get_user_model()
-
 class UserLoginView(APIView):
     permission_classes = (AllowAny, )
 
@@ -51,7 +50,7 @@ class GenerateGoogleSignInLink(APIView):
         return Response({
             "success": True,
             "data": {
-                "google_signin_link": auth_url
+                'google_signin_link': auth_url
             }
         }, status=status.HTTP_200_OK)
 
@@ -78,7 +77,7 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
 
             if access_token:
                 userinfo = self.get_userinfo(access_token)
-                response_data = self.login_or_create_user(request, userinfo['email'], userinfo.get('fullname', ''))
+                response_data = self.login_or_create_user(request, userinfo['id'], userinfo['email'], userinfo.get('name', ''))
                 response = Response(response_data, status=status.HTTP_200_OK)
                 response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
                 return response
@@ -106,7 +105,7 @@ class GoogleVerifyAccessToken(GoogleOAuthHandler):
 
         try:
             userinfo = self.get_userinfo(serializer.validated_data['token'])
-            response_data = self.login_or_create_user(request, userinfo['email'], userinfo.get('fullname', ''))
+            response_data = self.login_or_create_user(request, userinfo['id'], userinfo['email'], userinfo.get('name', ''))
             response = Response(response_data, status=status.HTTP_200_OK)
             response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)
             return response
