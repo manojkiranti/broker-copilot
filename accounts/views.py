@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
+from requests_oauthlib import OAuth2Session
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model, login
@@ -63,20 +64,20 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
         serializer.is_valid(raise_exception=True)
 
         try:
-            token_endpoint = 'https://oauth2.googleapis.com/token'
-            data = {
-                'code': serializer.validated_data['code'],
-                'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-                'client_secret': os.getenv('GOOGLE_CLIENT_SECRET'),
-                'redirect_uri': os.getenv('REDIRECT_URI'),
-                'grant_type': 'authorization_code',
-            }
-            token_response = requests.post(token_endpoint, data=data)
-            token_response.raise_for_status()
-            access_token = token_response.json().get('access_token')
+            # Initialize OAuth2Session with client credentials
+            oauth = OAuth2Session(os.getenv('GOOGLE_CLIENT_ID'), redirect_uri=os.getenv('REDIRECT_URI'))
+            # Fetch token using authorization code
+            token = oauth.fetch_token(
+                token_url='https://oauth2.googleapis.com/token',
+                code=serializer.validated_data['code'],
+                client_id=os.getenv('GOOGLE_CLIENT_ID'),
+                client_secret=os.getenv('GOOGLE_CLIENT_SECRET')
+            )
 
-            if access_token:
-                userinfo = self.get_userinfo(access_token)
+            # Use the obtained token to fetch user info
+            userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
+
+            if userinfo:
                 response_data = self.login_or_create_user(request, userinfo['id'], userinfo['email'], userinfo.get('name', ''))
                 response = Response(response_data, status=status.HTTP_200_OK)
                 response.set_cookie(key='jwt_authtoken', value=response_data['access_token'], httponly=True)

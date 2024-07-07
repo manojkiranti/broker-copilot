@@ -1,4 +1,5 @@
-import httpx, requests
+import httpx
+import requests
 from authlib.jose import jwt
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -12,27 +13,32 @@ class GoogleOAuthHandler(APIView):
 
     def get_userinfo(self, access_token):
         userinfo_endpoint = 'https://www.googleapis.com/oauth2/v1/userinfo'
-        response = requests.get(userinfo_endpoint, headers={'Authorization': f'Bearer {access_token}'})
+        response = requests.get(userinfo_endpoint, headers={
+                                'Authorization': f'Bearer {access_token}'})
         response.raise_for_status()
         return response.json()
 
     def login_or_create_user(self, request, id, email, name):
         user = User.objects.filter(oauth_id=id).first()
         if not user:
-            user = User.objects.create_user(email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
+            user = User.objects.create_user(
+                email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()
         login(request, user)
         refresh = RefreshToken.for_user(user)
         return {
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh),
-            'email': user.email,
-            'name': user.fullname,
-            'is_active': user.is_active,
-            'is_admin': user.is_admin,
+            'data': {
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh),
+                'email': user.email,
+                'name': user.fullname,
+                'is_active': user.is_active,
+                'is_admin': user.is_admin,
+            }
         }
 
-class MicrosoftTokenValidator :
+
+class MicrosoftTokenValidator:
     def __init__(self):
         self.public_keys = None
 
@@ -64,11 +70,12 @@ class MicrosoftTokenValidator :
 
         try:
             decoded_token = jwt.decode(token, self.public_keys, claims_options={
-                    'aud': {'essential': True, 'value': '90f18c66-c807-487e-b544-36f30af759be'},
-                    'iss': {'essential': True, 'value': 'https://login.microsoftonline.com/common/v2.0'}
-                })
+                'aud': {'essential': True, 'value': '90f18c66-c807-487e-b544-36f30af759be'},
+                'iss': {'essential': True, 'value': 'https://login.microsoftonline.com/common/v2.0'}
+            })
             return decoded_token
         except Exception as e:
             raise ValueError(f'JWT validation failed: {str(e)}')
         except:
-            raise ValueError(f'Unexpected error during token validation: {str(e)}')
+            raise ValueError(
+                f'Unexpected error during token validation: {str(e)}')
