@@ -1,4 +1,4 @@
-import httpx
+import httpx, os
 import requests
 from authlib.jose import jwt
 from rest_framework.views import APIView
@@ -21,6 +21,9 @@ class GoogleOAuthHandler(APIView):
     def login_or_create_user(self, request, id, email, name):
         user = User.objects.filter(oauth_id=id).first()
         if not user:
+            # if not email.endswith('@odinmortgage.com') and not os.getenv('DEBUG'):
+            #     raise ValueError('Only odinmortgage.com emails are allowed.')
+            # else:
             user = User.objects.create_user(
                 email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()
