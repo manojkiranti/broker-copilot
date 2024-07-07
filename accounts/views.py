@@ -15,6 +15,9 @@ from .serializers import (
     GoogleVerifyCodeForTokenSerializer
 )
 from .authenticator import GoogleOAuthHandler
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 User = get_user_model()
 class UserLoginView(APIView):
@@ -61,6 +64,7 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
     def post(self, request):
         serializer = GoogleVerifyCodeForTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # import pdb; pdb.set_trace();
 
         try:
             token_endpoint = 'https://oauth2.googleapis.com/token'
