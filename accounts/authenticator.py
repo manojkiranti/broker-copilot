@@ -1,4 +1,4 @@
-import httpx
+import httpx, os
 import requests
 import os
 from authlib.jose import jwt

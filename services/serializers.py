@@ -1,7 +1,19 @@
 from rest_framework import serializers
-from .models import BrokerServiceHistoryDetail
+from .models import BrokerServiceHistory
 
-class BrokerServiceHistoryDetailSerializer(serializers.ModelSerializer):
+class BrokerServiceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BrokerServiceHistoryDetail
-        fields = ['website_tracking_id', 'broker_service_history', 'json_data', 'start_date', 'api_request', 'api_response']
+        model = BrokerServiceHistory
+        fields = ('id', 'website_tracking_id', 'service', 'status', 'json_data', 'api_request', 'api_response', )
+
+class BrokerServiceHistorySerializer(serializers.Serializer):
+    website_tracking_id = serializers.CharField(max_length=255)
+    json_data = serializers.JSONField()
+    api_request = serializers.JSONField(required=False)
+    api_response = serializers.JSONField(required=False)
+
+
+class BrokerServiceHistoryUpdateSerializer(serializers.Serializer):
+    json_data = serializers.JSONField()
+    api_request = serializers.JSONField(required=False)
+    api_response = serializers.JSONField(required=False)

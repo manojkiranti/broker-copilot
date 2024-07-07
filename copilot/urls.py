@@ -33,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include('accounts.urls')),
+    path('api/', include('services.urls')),
     path('', my_view, name='my-view'),
     # path('', TemplateView.as_view(template_name='index.html')),
 
