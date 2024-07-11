@@ -20,11 +20,34 @@ class getAISettings(APIView):
         
         try:
             # Send a GET request to the API endpoint
-            response = requests.get(url)
-            response.raise_for_status()  # Raises an HTTPError for bad responses
+            # response = requests.get(url)
+            # response.raise_for_status()  # Raises an HTTPError for bad responses
 
-            # Get data from the response
-            data = response.json()
+            # # Get data from the response
+            # data = response.json()
+            data = {
+                "loginRequest": {
+                    "scopes": [".default"]
+                },
+                "msalConfig": {
+                    "auth": {
+                        "authority": "https://login.microsoftonline.com/",
+                        "clientId": None,
+                        "navigateToLoginRequestUrl": False,
+                        "postLogoutRedirectUri": "/",
+                        "redirectUri": "/redirect"
+                    },
+                    "cache": {
+                        "cacheLocation": "localStorage",
+                        "storeAuthStateInCookie": False
+                    }
+                },
+                "requireAccessControl": False,
+                "tokenRequest": {
+                    "scopes": ["api://None/access_as_user"]
+                },
+                "useLogin": False,
+            }
 
             # Return data as JSON
             return Response(data, status=status.HTTP_200_OK)
