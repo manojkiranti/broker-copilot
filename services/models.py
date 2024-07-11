@@ -32,6 +32,6 @@ class BrokerServiceHistory(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-
+    
     def __str__(self):
         return f"{self.user.email} - {self.service.name} - {self.status} - {self.website_tracking_id}"
