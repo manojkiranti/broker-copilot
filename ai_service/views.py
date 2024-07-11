@@ -48,7 +48,6 @@ class FeedbackAPIView(APIView):
             'username': request.user.email,  # Add the authenticated user's username
             'feedback': request.data.get('feedback')  # Add the feedback content received from the client
         }
-        print("Payload before sending:", payload)
         try:
             # Send a POST request to the AI service with the received data
             response = requests.post(url, json=payload)
