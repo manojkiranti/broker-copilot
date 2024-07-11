@@ -9,7 +9,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import re_path as url 
 from accounts.views import my_view
-
+import anz.urls
+import ai_service.urls
+import opportunity_service.urls
 
 def get_redirect_url(request, *args, **kwargs):
     return render(request, 'index.html')
@@ -34,7 +36,11 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include('accounts.urls')),
     path('api/', include('services.urls')),
+    path('api/anz/', include(anz.urls)),
+    path('api/ai/', include(ai_service.urls)),
+    path('api/', include(opportunity_service.urls)),
     path('', my_view, name='my-view'),
+    
     # path('', TemplateView.as_view(template_name='index.html')),
 
     path('docs', schema_view.with_ui('swagger',

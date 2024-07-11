@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'drf_yasg',
     'utils',
     'services',
+    'anz',
+    'ai_service',
+    'opportunity_service'
 ]
 
 MIDDLEWARE = [

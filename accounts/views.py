@@ -128,6 +128,7 @@ class GoogleVerifyAccessToken(GoogleOAuthHandler):
                 "details": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
 def my_view(request, template_name="index.html"):
     code = request.GET.get('code')
     return TemplateResponse(request, template_name, {'code': code})
