@@ -39,12 +39,15 @@ urlpatterns = [
     path('api/anz/', include(anz.urls)),
     path('api/ai/', include(ai_service.urls)),
     path('api/', include(opportunity_service.urls)),
-    path('', my_view, name='my-view'),
+    # path('', my_view, name='my-view'),
     
-    # path('', TemplateView.as_view(template_name='index.html')),
+    
 
     path('docs', schema_view.with_ui('swagger',
          cache_timeout=0), name="schema-swagger-ui"),
+    url(r'^.*$', TemplateView.as_view(template_name='index.html'), name='home'),
+    # path('', TemplateView.as_view(template_name='index.html')),
+    
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
