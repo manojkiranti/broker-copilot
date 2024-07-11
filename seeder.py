@@ -9,8 +9,12 @@ django.setup()
 from services.models import Service
 
 def seed_services():
+    # services = [
+    #     {'name': 'Broker Service History', 'url': 'broker_service_history', 'description': 'This is service 1', 'status': 'active'},
+    # ]
+
     services = [
-        {'name': 'Broker Service History', 'url': 'broker_service_history', 'description': 'This is service 1', 'status': 'active'},
+        {'name': 'Opportunity Service History', 'url': 'opportunity_service_history', 'description': 'opportunity service', 'status': 'active'},
     ]
 
     for service in services:

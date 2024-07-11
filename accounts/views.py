@@ -3,6 +3,7 @@ import requests
 from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from requests_oauthlib import OAuth2Session
@@ -62,6 +63,7 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
     def post(self, request):
         serializer = GoogleVerifyCodeForTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # import pdb; pdb.set_trace();
 
         try:
             # Initialize OAuth2Session with client credentials
@@ -86,6 +88,11 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
                 return Response({
                     "error": "Failed to obtain access token from Google."
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+        except ValidationError as e:
+            return Response({
+                "error": str(e.message)
+            }, status=status.HTTP_403_FORBIDDEN)
         except requests.RequestException as e:
             return Response({
                 "error": "Failed to obtain token from Google.",
@@ -120,6 +127,7 @@ class GoogleVerifyAccessToken(GoogleOAuthHandler):
                 "error": "An unexpected error occurred.",
                 "details": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
 
 def my_view(request, template_name="index.html"):
     code = request.GET.get('code')

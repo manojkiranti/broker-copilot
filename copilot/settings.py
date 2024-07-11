@@ -18,14 +18,14 @@ LOG_FILE = os.path.join(BASE_DIR, 'app.log')
 SECRET_KEY = 'django-insecure-8l_0f3hgd6nrfbv=z98ua_tetq-knc9q71pra#hu-p6^y^2i7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
+DEBUG = os.getenv('DEBUG')
 ALLOWED_HOSTS = ['*']
 
-
+CORS_ALLOW_ALL_ORIGINS = True
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,9 +39,13 @@ INSTALLED_APPS = [
     'drf_yasg',
     'utils',
     'services',
+    'anz',
+    'ai_service',
+    'opportunity_service'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -140,36 +144,36 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 # Azure Storage settings
-# AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
-# AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
-# AZURE_STATIC_CONTAINER = os.getenv('AZURE_CONTAINER')
-# AZURE_MEDIA_CONTAINER = os.getenv('AZURE_CONTAINER')
-# AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
+AZURE_ACCOUNT_NAME = os.getenv('AZURE_ACCOUNT_NAME')
+AZURE_ACCOUNT_KEY = os.getenv('AZURE_ACCOUNT_KEY')
+AZURE_STATIC_CONTAINER = os.getenv('AZURE_CONTAINER')
+AZURE_MEDIA_CONTAINER = os.getenv('AZURE_CONTAINER')
+AZURE_CUSTOM_DOMAIN = f'{AZURE_ACCOUNT_NAME}.blob.core.windows.net'
 
-# if not DEBUG:
-#     STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/'
-#     MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/'
+if not DEBUG:
+    STATIC_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_STATIC_CONTAINER}/'
+    MEDIA_URL = f'https://{AZURE_CUSTOM_DOMAIN}/{AZURE_MEDIA_CONTAINER}/'
 
-#     STORAGES = {
-#         "default": {
-#             "BACKEND": "storages.backends.azure_storage.AzureStorage",
-#             "OPTIONS": {
-#                 "account_name": AZURE_ACCOUNT_NAME,
-#                 "account_key": AZURE_ACCOUNT_KEY,
-#                 "azure_container": AZURE_MEDIA_CONTAINER,
-#                 "expiration_secs": None,
-#             },
-#         },
-#         "staticfiles": {
-#             "BACKEND": "storages.backends.azure_storage.AzureStorage",
-#             "OPTIONS": {
-#                 "account_name": AZURE_ACCOUNT_NAME,
-#                 "account_key": AZURE_ACCOUNT_KEY,
-#                 "azure_container": AZURE_STATIC_CONTAINER,
-#                 "expiration_secs": None,
-#             },
-#         },
-#     }
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                "account_name": AZURE_ACCOUNT_NAME,
+                "account_key": AZURE_ACCOUNT_KEY,
+                "azure_container": AZURE_MEDIA_CONTAINER,
+                "expiration_secs": None,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.azure_storage.AzureStorage",
+            "OPTIONS": {
+                "account_name": AZURE_ACCOUNT_NAME,
+                "account_key": AZURE_ACCOUNT_KEY,
+                "azure_container": AZURE_STATIC_CONTAINER,
+                "expiration_secs": None,
+            },
+        },
+    }
 
 
 REST_FRAMEWORK = {
