@@ -45,8 +45,7 @@ urlpatterns = [
 
     path('docs', schema_view.with_ui('swagger',
          cache_timeout=0), name="schema-swagger-ui"),
-    url(r'^.*$', TemplateView.as_view(template_name='index.html'), name='home'),
-    # path('', TemplateView.as_view(template_name='index.html')),
+    path('', TemplateView.as_view(template_name='index.html')),
     
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
