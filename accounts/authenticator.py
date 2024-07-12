@@ -8,10 +8,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
+from enum import Enum
 
 from django.contrib.auth import get_user_model, login
 User = get_user_model()
 
+class AllowedDomains(Enum):
+    ODIN_MORTGAGE = 'odinmortgage.com'
 
 class GoogleOAuthHandler(APIView):
     permission_classes = (AllowAny, )
@@ -26,14 +29,13 @@ class GoogleOAuthHandler(APIView):
     def login_or_create_user(self, request, id, email, name):
         
         user = User.objects.filter(oauth_id=id).first()
-        check_domain =  os.getenv('CHECK_DOMAIN')
-        if not user:
-            if check_domain:                
-                domain = email.split('@')[-1]  # Get the part after '@'
+        if not user:             
+            domain = email.split('@')[-1]  # Get the part after '@'
                 
-                # Check if the domain is the expected one
-                if domain != 'odinmortgage.com':
-                    raise ValidationError("Registration is restricted to users with an @odinmortgage.com email address.")
+            # Check if the domain is the expected one
+            allowed_domains = [domain.value for domain in AllowedDomains]
+            if domain not in allowed_domains:
+                raise ValidationError("Registration is restricted to users with an allowed email domain.")
             user = User.objects.create_user(
                 email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()

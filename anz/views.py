@@ -17,7 +17,7 @@ blob_service_client = BlobServiceClient.from_connection_string(connection_string
 
 
 class DocsListAPIView(APIView):
-    @swagger_auto_schema(tags=['ANZ Wiki Service'])
+    # @swagger_auto_schema(tags=['ANZ Wiki Service'])
     def get(self, request, *args, **kwargs):
         container_name = "anz"
         blob_list = self.list_blobs_in_container(container_name)

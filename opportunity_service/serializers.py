@@ -8,6 +8,10 @@ class OpportunityServiceSerializer(serializers.Serializer):
     json_data = serializers.JSONField()
     api_request = serializers.JSONField(required=False)
     api_response = serializers.JSONField(required=False)
+    user_contact_name = serializers.CharField(max_length=255, required=False)
+    user_contact_email = serializers.EmailField(max_length=99, required=False)
+    user_contact_phone = serializers.CharField(max_length=99, required=False)
+    user_contact_citizenship_number = serializers.CharField(max_length=255, required=False)
     
     def to_representation(self, instance):
         # Serialize the original data first

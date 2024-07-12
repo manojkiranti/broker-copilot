@@ -35,3 +35,12 @@ class BrokerServiceHistory(models.Model):
     
     def __str__(self):
         return f"{self.user.email} - {self.service.name} - {self.status} - {self.website_tracking_id}"
+
+class ContactInfo(models.Model):
+    name = models.CharField(max_length=100, null=True, blank=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
+    phone = models.CharField(max_length=15, null=True, blank=True)
+    citizenship_number = models.CharField(max_length=99, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

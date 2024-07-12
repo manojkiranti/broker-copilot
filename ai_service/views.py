@@ -12,7 +12,7 @@ from django.shortcuts import render
 
 class getAISettings(APIView):
     permission_classes = (AllowAny, )
-    @swagger_auto_schema(tags=['AI Service'])
+    # @swagger_auto_schema(tags=['AI Service'])
     def get(self, request, *args, **kwargs):
         # Define the API endpoint
         ai_url = os.getenv('AI_URL')
@@ -94,6 +94,6 @@ class FeedbackAPIView(APIView):
     
 class getAIAccountInfo(APIView):
     permission_classes = (AllowAny, )
-    @swagger_auto_schema(tags=['AI Service'])
+    # @swagger_auto_schema(tags=['AI Service'])
     def get(self, request, *args, **kwargs):
         return Response("success", status=status.HTTP_200_OK)

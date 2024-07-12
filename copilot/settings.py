@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -58,7 +59,7 @@ ROOT_URLCONF = 'copilot.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'build'), ],
+        'DIRS': [os.path.join(BASE_DIR, 'build'),os.path.join(BASE_DIR, 'templates'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,9 +82,9 @@ WSGI_APPLICATION = 'copilot.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),            
-        'USER': os.getenv('DB_USER'),           
-        'PASSWORD': os.getenv('DB_PASSWORD'), 
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
         'PORT': os.getenv('DB_PORT'),
     }
@@ -128,7 +129,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'build/static'),
+    os.path.join(BASE_DIR, 'build/static'),
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -8,7 +8,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import re_path as url 
-from accounts.views import my_view
+# from accounts.views import my_view
 import anz.urls
 import ai_service.urls
 import opportunity_service.urls
@@ -41,8 +41,8 @@ urlpatterns = [
     path('api/', include(opportunity_service.urls)),
     # path('', my_view, name='my-view'),
     
-    
 
+    path('', TemplateView.as_view(template_name='index.html')),
     path('docs', schema_view.with_ui('swagger',
          cache_timeout=0), name="schema-swagger-ui"),
     path('', TemplateView.as_view(template_name='index.html')),

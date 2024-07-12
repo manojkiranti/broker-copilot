@@ -2,7 +2,7 @@ from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
 
-from services.models import Service
+from services.models import Service, ContactInfo
 
 User = get_user_model()
 
@@ -22,6 +22,7 @@ class OpportunityService(models.Model):
     json_data = models.JSONField(default=dict)
     api_request = models.JSONField(default=dict)
     api_response = models.JSONField(default=dict)
+    user_contact = models.ForeignKey(ContactInfo, on_delete=models.CASCADE, related_name="contactinfo")
     start_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
