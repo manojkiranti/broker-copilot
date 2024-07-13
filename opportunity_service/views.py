@@ -1,24 +1,28 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views  import APIView
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from .serializers import OpportunityServiceSerializer
+from .serializers import OpportunityServiceSerializer, GeneratePdfSerializer
 from .models import OpportunityService
 from services.models import Service, ContactInfo
 from services.serializers import ContactInfoSerializer
+from utils.renderers import html_to_pdf
+import base64
+
 
 class OpportunityServiceListAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     # @swagger_auto_schema(
     #     tags=['Broker Service History']
     # )
     def get(self, request, *args, **kwargs):
         try:
-            broker_service_list = OpportunityService.objects.filter(user=request.user)
+            broker_service_list = OpportunityService.objects.filter(
+                user=request.user)
             serializer = OpportunityServiceSerializer(
                 broker_service_list, many=True)
             response_data = {
@@ -29,6 +33,7 @@ class OpportunityServiceListAPIView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class OpportunityServiceCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -51,7 +56,8 @@ class OpportunityServiceCreateAPIView(APIView):
         serializer = OpportunityServiceSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                opportunity_service = Service.objects.get(url='opportunity_service_history')
+                opportunity_service = Service.objects.get(
+                    url='opportunity_service_history')
 
                 opportunity_service_history_data = {
                     'user': request.user,
@@ -67,16 +73,22 @@ class OpportunityServiceCreateAPIView(APIView):
                     opportunity_service_history_data['api_response'] = serializer.validated_data['api_response']
 
                 # Check if any user contact info fields are present in the serializer data
-                contact_info_fields = ['user_contact_name', 'user_contact_email', 'user_contact_phone', 'user_contact_citizenship_number']
-                any_contact_info_present = any(field in serializer.validated_data for field in contact_info_fields)
+                contact_info_fields = ['user_contact_name', 'user_contact_email',
+                                       'user_contact_phone', 'user_contact_citizenship_number']
+                any_contact_info_present = any(
+                    field in serializer.validated_data for field in contact_info_fields)
 
                 if any_contact_info_present:
                     # Try to find existing ContactInfo based on available fields
                     existing_contact_info = ContactInfo.objects.filter(
-                        name=serializer.validated_data.get('user_contact_name'),
-                        email=serializer.validated_data.get('user_contact_email'),
-                        phone=serializer.validated_data.get('user_contact_phone'),
-                        citizenship_number=serializer.validated_data.get('user_contact_citizenship_number')
+                        name=serializer.validated_data.get(
+                            'user_contact_name'),
+                        email=serializer.validated_data.get(
+                            'user_contact_email'),
+                        phone=serializer.validated_data.get(
+                            'user_contact_phone'),
+                        citizenship_number=serializer.validated_data.get(
+                            'user_contact_citizenship_number')
                     ).first()
 
                     if existing_contact_info:
@@ -85,16 +97,20 @@ class OpportunityServiceCreateAPIView(APIView):
                     else:
                         # Create new ContactInfo object
                         new_contact_info = ContactInfo.objects.create(
-                            name=serializer.validated_data.get('user_contact_name'),
-                            email=serializer.validated_data.get('user_contact_email'),
-                            phone=serializer.validated_data.get('user_contact_phone'),
-                            citizenship_number=serializer.validated_data.get('user_contact_citizenship_number')
+                            name=serializer.validated_data.get(
+                                'user_contact_name'),
+                            email=serializer.validated_data.get(
+                                'user_contact_email'),
+                            phone=serializer.validated_data.get(
+                                'user_contact_phone'),
+                            citizenship_number=serializer.validated_data.get(
+                                'user_contact_citizenship_number')
                         )
                         opportunity_service_history_data['user_contact'] = new_contact_info
 
                 # Create OpportunityServiceHistory object
-                opportunity_service_history = OpportunityService.objects.create(**opportunity_service_history_data)
-
+                opportunity_service_history = OpportunityService.objects.create(
+                    **opportunity_service_history_data)
 
                 # Prepare response data including ContactInfo details if created
                 response_data = {
@@ -119,7 +135,7 @@ class OpportunityServiceCreateAPIView(APIView):
             except Exception as e:
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 
 class OpportunityServiceDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -137,10 +153,13 @@ class OpportunityServiceDetailAPIView(APIView):
     #         )
     #     }
     # )
+
     def get(self, request, pk, *args, **kwargs):
         try:
-            opportunity_service_history = OpportunityService.objects.get(pk=pk, user=request.user)
-            serializer = OpportunityServiceSerializer(opportunity_service_history)
+            opportunity_service_history = OpportunityService.objects.get(
+                pk=pk, user=request.user)
+            serializer = OpportunityServiceSerializer(
+                opportunity_service_history)
             response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
@@ -151,5 +170,47 @@ class OpportunityServiceDetailAPIView(APIView):
             return Response({"error": "Opportunity service history not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
+
+
+class GeneratePdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=GeneratePdfSerializer,
+        tags=['Broker Service History'],
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = GeneratePdfSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            context = {
+                'data': serializer.validated_data['json_data']
+            }
+            pdf_content = html_to_pdf("pdf_template.html", context)
+            if pdf_content is None:
+                return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
+
+            pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
+            pdf_data_url = f"data:application/pdf;base64,{pdf_base64}"
+
+            data = {
+                "pdfUrl": pdf_data_url,
+                "content_type": "application/pdf"
+            }
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {
+                    "error": {
+                        "statusCode": status.HTTP_400_BAD_REQUEST,
+                        "message": str(e),
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )

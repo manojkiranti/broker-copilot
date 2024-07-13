@@ -22,3 +22,7 @@ class OpportunityServiceSerializer(serializers.Serializer):
             ret['json_data']['id'] = instance.id
         
         return ret
+    
+
+class GeneratePdfSerializer(serializers.Serializer):
+    json_data = serializers.JSONField()
