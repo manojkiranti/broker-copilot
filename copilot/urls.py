@@ -12,6 +12,7 @@ from django.urls import re_path as url
 import anz.urls
 import ai_service.urls
 import opportunity_service.urls
+import compliance_service.urls
 
 def get_redirect_url(request, *args, **kwargs):
     return render(request, 'index.html')
@@ -39,6 +40,7 @@ urlpatterns = [
     path('api/anz/', include(anz.urls)),
     path('api/ai/', include(ai_service.urls)),
     path('api/', include(opportunity_service.urls)),
+    path('api/comliance-note/', include(compliance_service.urls)),
     # path('', my_view, name='my-view'),
     
 

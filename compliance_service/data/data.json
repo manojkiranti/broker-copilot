@@ -1,0 +1,42 @@
+{
+    "loan_objectives":{
+        "Example1": {
+        "Purpose": "Investment Property Pre-approval",
+        "Cash-out Purpose": "N/A",
+        "LVR": "70%",
+        "Note": "The applicants aim to obtain a 70% LVR pre-approval loan for a future investment property purchase."
+        },
+        "Example2": {
+        "Purpose": "Investment House & Land Construction",
+        "Cash-out Purpose": "Assist with Australian property purchase",
+        "LVR": "80%",
+        "Note": "The applicant is looking to do a House & Land construction at 80% LVR, in addition to refinancing their other existing Australian mortgages to release equity to assist with this H&L transaction."
+        },
+        "Example3": {
+        "Purpose": "Investment Property Vacant Land",
+        "Cash-out Purpose": "Assist with Australian property purchase",
+        "LVR": "60%",
+        "Note": "The applicant is looking to purchase vacant land at a 60% LVR, in addition to releasing equity from their existing mortgages to assist with this purchase transaction."
+        }
+    },
+    "loan_requirements": {
+        "Example1": {
+          "Citizenship": "Australian Citizen",
+          "Residency": "Living and working outside Australia",
+          "Purpose": "Investment Property Purchase",
+          "Note": "The applicant requires a lender that offers loans to Australian citizens living and working abroad, with competitive pricing, flexible loan features, and repayment options to effectively manage cash flows for his property purchase."
+        },
+        "Example2": {
+          "Citizenship": "Foreign National",
+          "Residency": "Living and working outside Australia",
+          "Purpose": "Investment Property House & Land Construction",
+          "Note": "The applicant requires a lender that offers loans to non-Australians living and working outside of Australia for house and land construction, with competitive offerings and flexible loan repayment options."
+        },
+        "Example3": {
+          "Citizenship": "Australian PR Visa",
+          "Residency": "Living and working outside Australia",
+          "Purpose": "Investment Property Pre-approval",
+          "Note": "The applicants require a lender that offers loans to Australian PR Visa holders living and working outside of Australia. They seek a pre-approval loan with competitive pricing and loan features with flexibility to make extra repayments, to meet their loan objectives."
+        }
+      }      
+}

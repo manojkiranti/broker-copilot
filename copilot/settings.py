@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'services',
     'anz',
     'ai_service',
-    'opportunity_service'
+    'opportunity_service',
+    'compliance_service'
 ]
 
 MIDDLEWARE = [
