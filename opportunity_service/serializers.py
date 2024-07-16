@@ -1,7 +1,12 @@
 from rest_framework import serializers
-from .models import OpportunityService
+from .models import  ContactsOpportunity
 
 
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactsOpportunity
+        fields = ['name', 'email', 'phone', 'identity_number']
+        
 class OpportunityServiceSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     website_tracking_id = serializers.CharField(max_length=255, required=False)
@@ -11,7 +16,7 @@ class OpportunityServiceSerializer(serializers.Serializer):
     user_contact_name = serializers.CharField(max_length=255, required=False)
     user_contact_email = serializers.EmailField(max_length=99, required=False)
     user_contact_phone = serializers.CharField(max_length=99, required=False)
-    user_contact_citizenship_number = serializers.CharField(max_length=255, required=False)
+    user_contact_identity_number = serializers.CharField(max_length=255, required=False)
     
     def to_representation(self, instance):
         # Serialize the original data first
@@ -22,3 +27,4 @@ class OpportunityServiceSerializer(serializers.Serializer):
             ret['json_data']['id'] = instance.id
         
         return ret
+
