@@ -10,15 +10,49 @@ from requests_oauthlib import OAuth2Session
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model, login
+from rest_framework.permissions import IsAuthenticated
 from django.template.response import TemplateResponse
 from .serializers import (
     UserLoginSerializer, 
     GoogleVerifyAccessTokenSerializer, 
-    GoogleVerifyCodeForTokenSerializer
+    GoogleVerifyCodeForTokenSerializer,
+    UserListSerializer
 )
 from .authenticator import GoogleOAuthHandler
 
 User = get_user_model()
+
+class UserListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        # Retrieve query parameters for email and broker_role
+        email = request.query_params.get('email', None)
+        broker_role = request.query_params.get('broker_role', None)
+        fullname = request.query_params.get('name', None)
+
+        # Start with all users
+        users = User.objects.all()
+
+        # Apply email filter if provided
+        if email:
+            users = users.filter(email__icontains=email)
+
+        # Apply fullname filter if provided
+        if fullname:
+            users = users.filter(fullname__icontains=fullname)
+        
+        # Apply broker_role filter if provided
+        if broker_role:
+            users = users.filter(broker_role=broker_role)
+
+        # Serialize the filtered queryset
+        serializer = UserListSerializer(users, many=True)
+        return Response({
+            "success": True,
+            "data": serializer.data
+        },status=status.HTTP_200_OK)
+    
 class UserLoginView(APIView):
     permission_classes = (AllowAny, )
 
@@ -32,6 +66,7 @@ class UserLoginView(APIView):
         return Response({
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh),
+            'fullname': user.fullname,
             'email': user.email,
             'is_active': user.is_active,
             'is_admin': user.is_admin,
@@ -62,9 +97,10 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
     @swagger_auto_schema(request_body=GoogleVerifyCodeForTokenSerializer, operation_id='3_verify_code_for_token', tags=['AUTH'])
     def post(self, request):
         serializer = GoogleVerifyCodeForTokenSerializer(data=request.data)
+        
         serializer.is_valid(raise_exception=True)
         # import pdb; pdb.set_trace();
-
+        print(serializer.errors)
         try:
             # Initialize OAuth2Session with client credentials
             oauth = OAuth2Session(os.getenv('GOOGLE_CLIENT_ID'), redirect_uri=os.getenv('REDIRECT_URI'))

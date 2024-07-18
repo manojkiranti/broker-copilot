@@ -4,6 +4,7 @@ from .views import (
     GenerateGoogleSignInLink,
     GoogleVerifyCodeForToken,
     GoogleVerifyAccessToken,
+    UserListView
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('auth/google-redirect-link', GenerateGoogleSignInLink.as_view(), name='google-redirect-link'),
     path('auth/google-verify-token', GoogleVerifyCodeForToken.as_view(), name='google-verify-token'),
     path('auth/google-access-token', GoogleVerifyAccessToken.as_view(), name='google-access-token'),
+    path('auth/users', UserListView.as_view(), name='users'),
 ]

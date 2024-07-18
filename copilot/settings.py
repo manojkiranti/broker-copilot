@@ -18,7 +18,8 @@ LOG_FILE = os.path.join(BASE_DIR, 'app.log')
 SECRET_KEY = 'django-insecure-8l_0f3hgd6nrfbv=z98ua_tetq-knc9q71pra#hu-p6^y^2i7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG')
+# DEBUG = os.getenv('DEBUG')
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_ALL_ORIGINS = True

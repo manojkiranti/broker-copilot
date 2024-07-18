@@ -1,5 +1,6 @@
 import logging
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 
@@ -42,6 +43,18 @@ class UserLoginSerializer(serializers.Serializer):
         data['user'] = authenticated_user
         return data
 
+class UserListSerializer(serializers.ModelSerializer):
+    is_profile_complete = SerializerMethodField()
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'fullname', 'is_active', 'phone', 'broker_role', 'is_profile_complete']
+        read_only_fields = fields  
+    
+    def get_is_profile_complete(self, obj):
+        """Method to get the state of the user's profile completion."""
+        return obj.is_profile_complete()
+        
+        
 class GoogleVerifyCodeForTokenSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=255)
 
