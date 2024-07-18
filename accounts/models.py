@@ -46,6 +46,12 @@ class User(AbstractBaseUser):
         ('female', 'female'),
         ('other', 'other')
     )
+    
+    BROKER_ROLES = (
+        ('broker', 'Broker'),
+        ('processor', 'Processor'),
+    )
+    
     uid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     username = models.CharField(max_length=255, null=True, unique=True)
     fullname = models.CharField(max_length=255)
@@ -55,6 +61,8 @@ class User(AbstractBaseUser):
         unique=True
     )
     password = models.CharField(_("password"), max_length=128, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    broker_role = models.CharField(max_length=20, choices=BROKER_ROLES, null=True, blank=True)
     oauth_type = models.IntegerField(
         choices=OauthType.choices,
         default=OauthType.DEFAULT,
@@ -86,6 +94,11 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+    
+    def is_profile_complete(self):
+        """Check if all required profile fields are filled."""
+        required_fields = [self.phone, self.fullname, self.broker_role]
+        return all(field is not None and field != '' for field in required_fields)
 
     @property
     def is_staff(self):

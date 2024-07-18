@@ -1,4 +1,5 @@
 from django.contrib import admin
-from .models import OpportunityService
+from .models import OpportunityService, ContactsOpportunity
 
-admin.register(OpportunityService)
+admin.site.register(OpportunityService)
+admin.site.register(ContactsOpportunity)

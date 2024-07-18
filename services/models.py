@@ -1,13 +1,14 @@
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
-
+from opportunity_service.models import OpportunityService
 User = get_user_model()
 
 class Service(models.Model):
     name = models.CharField(max_length=255)
     url=models.CharField(max_length=255)
     description = models.TextField()
+    opportunity_id = models.ForeignKey(OpportunityService, on_delete=models.CASCADE, null=True, related_name="services")
     status = models.CharField(max_length=50)
 
     def __str__(self):
@@ -32,7 +33,7 @@ class BrokerServiceHistory(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-
+    
     def __str__(self):
         return f"{self.user.email} - {self.service.name} - {self.status} - {self.website_tracking_id}"
 

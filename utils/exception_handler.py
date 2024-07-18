@@ -11,8 +11,9 @@ def custom_exception_handler(exc, context):
 
     # Call REST framework's default exception handler first,
     # to get the standard error response.
-    #import pdb; pdb.set_trace();
+
     response = exception_handler(exc, context)
+  
     if response is not None:
         # Using the description's of the HTTPStatus class as error message.
         # import pdb; pdb.set_trace();

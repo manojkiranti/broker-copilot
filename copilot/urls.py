@@ -12,9 +12,10 @@ from django.urls import re_path as url
 import anz.urls
 import ai_service.urls
 import opportunity_service.urls
+import compliance_service.urls
 
-def get_redirect_url(request, *args, **kwargs):
-    return render(request, 'index.html')
+# def get_redirect_url(request, *args, **kwargs):
+#     return render(request, 'index.html')
 
 
 schema_view = get_schema_view(
@@ -39,15 +40,17 @@ urlpatterns = [
     path('api/anz/', include(anz.urls)),
     path('api/ai/', include(ai_service.urls)),
     path('api/', include(opportunity_service.urls)),
+    path('api/comliance-note/', include(compliance_service.urls)),
     # path('', my_view, name='my-view'),
     
-    # path('', TemplateView.as_view(template_name='index.html')),
 
-    path('', TemplateView.as_view(template_name='index.html')),
+    # path('', TemplateView.as_view(template_name='index.html')),
     path('docs', schema_view.with_ui('swagger',
          cache_timeout=0), name="schema-swagger-ui"),
+    # path('', TemplateView.as_view(template_name='index.html')),
+    
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-urlpatterns.append(url(r'^.*$', get_redirect_url))
+# urlpatterns.append(url(r'^.*$', get_redirect_url))
 

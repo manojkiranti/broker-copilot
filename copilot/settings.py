@@ -18,7 +18,8 @@ LOG_FILE = os.path.join(BASE_DIR, 'app.log')
 SECRET_KEY = 'django-insecure-8l_0f3hgd6nrfbv=z98ua_tetq-knc9q71pra#hu-p6^y^2i7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG')
+# DEBUG = os.getenv('DEBUG')
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -33,15 +34,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-
     'rest_framework',
     'accounts',
     'drf_yasg',
     'utils',
+    'opportunity_service',
     'services',
     'anz',
     'ai_service',
-    'opportunity_service'
+    'compliance_service'
 ]
 
 MIDDLEWARE = [
@@ -60,7 +61,10 @@ ROOT_URLCONF = 'copilot.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'build'),os.path.join(BASE_DIR, 'templates'), ],
+        'DIRS': [
+            # os.path.join(BASE_DIR, 'build'),
+            os.path.join(BASE_DIR, 'templates'), 
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -130,6 +134,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
+    # os.path.join(BASE_DIR, 'build/static'),
     os.path.join(BASE_DIR, 'build/static'),
 ]
 

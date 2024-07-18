@@ -17,6 +17,7 @@ class AllowedDomains(Enum):
     ODIN_MORTGAGE = 'odinmortgage.com'
 
 class GoogleOAuthHandler(APIView):
+    
     permission_classes = (AllowAny, )
 
     def get_userinfo(self, access_token):
@@ -35,7 +36,8 @@ class GoogleOAuthHandler(APIView):
             # Check if the domain is the expected one
             allowed_domains = [domain.value for domain in AllowedDomains]
             if domain not in allowed_domains:
-                raise ValidationError("Registration is restricted to users with an allowed email domain.")
+                
+                raise ValidationError( "Registration is restricted to users with an allowed email domain.")
             user = User.objects.create_user(
                 email=email, fullname=name, oauth_type=3, oauth_id=id, is_verified=True)
             user.save()
