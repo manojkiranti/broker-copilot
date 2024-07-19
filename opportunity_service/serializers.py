@@ -41,5 +41,9 @@ class OpportunityServiceSerializer(serializers.Serializer):
         # Add 'id' inside 'json_data' if it exists
         if 'json_data' in ret and isinstance(ret['json_data'], dict):
             ret['json_data']['id'] = instance.id
-
+        
         return ret
+    
+
+class GeneratePdfSerializer(serializers.Serializer):
+    json_data = serializers.JSONField()
