@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from utils.renderers import html_to_pdf
+# from utils.renderers import html_to_pdf
 
 from .serializers import GeneratePdfSerializer, OpportunityServiceSerializer, ContactSerializer
 from .models import OpportunityService, ContactsOpportunity
@@ -301,45 +301,45 @@ class OpportunityServiceDetailAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class GeneratePdfView(APIView):
-    permission_classes = [IsAuthenticated]
+# class GeneratePdfView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        request_body=GeneratePdfSerializer,
-        tags=['Broker Service History'],
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = GeneratePdfSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+#     @swagger_auto_schema(
+#         request_body=GeneratePdfSerializer,
+#         tags=['Broker Service History'],
+#     )
+#     def post(self, request, *args, **kwargs):
+#         serializer = GeneratePdfSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
 
-        try:
-            context = {
-                'data': serializer.validated_data['json_data']
-            }
-            pdf_content = html_to_pdf("pdf_template.html", context)
-            if pdf_content is None:
-                return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             context = {
+#                 'data': serializer.validated_data['json_data']
+#             }
+#             pdf_content = html_to_pdf("pdf_template.html", context)
+#             if pdf_content is None:
+#                 return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
 
-            pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
-            pdf_data_url = f"data:application/pdf;base64,{pdf_base64}"
+#             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
+#             pdf_data_url = f"data:application/pdf;base64,{pdf_base64}"
 
-            data = {
-                "pdfUrl": pdf_data_url,
-                "content_type": "application/pdf"
-            }
-            response_data = {
-                "success": True,
-                "statusCode": status.HTTP_200_OK,
-                "data": data,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+#             data = {
+#                 "pdfUrl": pdf_data_url,
+#                 "content_type": "application/pdf"
+#             }
+#             response_data = {
+#                 "success": True,
+#                 "statusCode": status.HTTP_200_OK,
+#                 "data": data,
+#             }
+#             return Response(response_data, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            return Response(
-                {
-                    "error": {
-                        "statusCode": status.HTTP_400_BAD_REQUEST,
-                        "message": str(e),
-                    }
-                }, status=status.HTTP_400_BAD_REQUEST
-            )
+#         except Exception as e:
+#             return Response(
+#                 {
+#                     "error": {
+#                         "statusCode": status.HTTP_400_BAD_REQUEST,
+#                         "message": str(e),
+#                     }
+#                 }, status=status.HTTP_400_BAD_REQUEST
+#             )
