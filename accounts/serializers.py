@@ -47,7 +47,7 @@ class UserListSerializer(serializers.ModelSerializer):
     is_profile_complete = SerializerMethodField()
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'fullname', 'is_active', 'phone', 'broker_role', 'is_profile_complete']
+        fields = ['id', 'username', 'email', 'fullname', 'is_active', 'broker_role', 'is_profile_complete']
         read_only_fields = fields  
     
     def get_is_profile_complete(self, obj):
