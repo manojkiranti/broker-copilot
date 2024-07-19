@@ -18,7 +18,7 @@ class OpportunityServiceSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
     type = serializers.ChoiceField(choices=[(tag.value, tag.name) for tag in OpportunityServiceType])
-    website_tracking_id = serializers.CharField(max_length=255, required=False)
+    website_tracking_id = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     json_data = serializers.JSONField(required=False)
     api_request = serializers.JSONField(required=False)
     api_response = serializers.JSONField(required=False)
@@ -26,13 +26,16 @@ class OpportunityServiceSerializer(serializers.Serializer):
     user_contact_email = serializers.EmailField(max_length=99, required=False)
     user_contact_phone = serializers.CharField(max_length=99, required=False)
     user_contact_identity_number = serializers.CharField(max_length=255, required=False)
-    primary_contact = serializers.IntegerField(required=False)
-    secondary_contact =  serializers.IntegerField(required=False)
+    primary_contact = serializers.CharField(required=False)
+    secondary_contact =  serializers.CharField(required=False)
+    user_contact = ContactSerializer(read_only=True)
     
-    def validate_name(self, value):
-        # Validate the uniqueness of the name field
-        if OpportunityService.objects.filter(name=value).exists():
-            raise serializers.ValidationError("An Deal with this name already exists.")
+    def validate_website_tracking_id(self, value):
+        """
+        Convert empty string to None for website_tracking_id to handle unique constraint with null values.
+        """
+        if value == '':
+            return None
         return value
     
     def to_representation(self, instance):

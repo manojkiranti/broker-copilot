@@ -40,5 +40,5 @@ class OpportunityService(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.status}"
+        return f"{self.status} - {self.name}"
 

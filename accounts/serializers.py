@@ -60,3 +60,7 @@ class GoogleVerifyCodeForTokenSerializer(serializers.Serializer):
 
 class GoogleVerifyAccessTokenSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=555)
+
+class UserFeedbackSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=1024)
+    created_at = serializers.DateTimeField()

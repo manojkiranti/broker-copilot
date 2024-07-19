@@ -16,10 +16,11 @@ from .serializers import (
     UserLoginSerializer, 
     GoogleVerifyAccessTokenSerializer, 
     GoogleVerifyCodeForTokenSerializer,
-    UserListSerializer
+    UserListSerializer,
+    UserFeedbackSerializer
 )
 from .authenticator import GoogleOAuthHandler
-
+from .models import UserFeedback
 User = get_user_model()
 
 class UserListView(APIView):
@@ -164,7 +165,21 @@ class GoogleVerifyAccessToken(GoogleOAuthHandler):
                 "details": str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+class UserFeedbackCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request, *args, **kwargs):
+        serializer = UserFeedbackSerializer(data=request.data)
+        if serializer.is_valid():
+            user_feedback = UserFeedback.objects.create(
+                user=request.user,
+                message=serializer.validated_data['message']
+            )
+            # Serialize the newly created UserFeedback instance to return it in the response
+            return Response(UserFeedbackSerializer(user_feedback).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 def my_view(request, template_name="index.html"):
     code = request.GET.get('code')
     return TemplateResponse(request, template_name, {'code': code})
+

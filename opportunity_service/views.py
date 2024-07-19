@@ -1,4 +1,6 @@
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.views  import APIView
@@ -20,12 +22,12 @@ class OpportunityServiceListAPIView(APIView):
         search_query = request.query_params.get('name', '')
         try:
             # Filter OpportunityService objects by search query if provided
+            opportunity_services = OpportunityService.objects.filter(
+                user=request.user, 
+                status='active'  # Ensure that only active services are fetched
+            )
             if search_query:
-                opportunity_services = OpportunityService.objects.filter(
-                    Q(user=request.user) & Q(name__icontains=search_query)
-                )
-            else:
-                opportunity_services = OpportunityService.objects.filter(user=request.user)
+                opportunity_services = opportunity_services.filter(name__icontains=search_query)
             serializer = OpportunityServiceSerializer(
                 opportunity_services, many=True)
             response_data = {
@@ -36,13 +38,36 @@ class OpportunityServiceListAPIView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+        
+class AllOpportunityServiceListAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures authorized user can access this view
+
+    def get(self, request, *args, **kwargs):
+        opportunity_services = OpportunityService.objects.filter(status='active')
+        search_query = request.query_params.get('name', '')
+        if search_query:
+            opportunity_services = opportunity_services.filter(name__icontains=search_query)
+
+        serializer = OpportunityServiceSerializer(opportunity_services, many=True)
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "data": serializer.data,
+        }, status=status.HTTP_200_OK)
+        
 class OpportunityServiceCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request, *args, **kwargs):
+        
         serializer = OpportunityServiceSerializer(data=request.data)
        
         serializer.is_valid(raise_exception=True)
+        name = serializer.validated_data.get('name')
+        if OpportunityService.objects.filter(name=name).exists():
+            return Response({
+                "error": "An opportunity with this name already exists."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         website_tracking_id = serializer.validated_data.get('website_tracking_id')
         
         # Check if website_tracking_id already exists
@@ -63,16 +88,16 @@ class OpportunityServiceCreateAPIView(APIView):
             }
             
              # Handling optional primary_contact
-            primary_contact_id = serializer.validated_data.get('primary_contact_id')
-            if primary_contact_id:
-                primary_contact = User.objects.filter(id=primary_contact_id).first()
+            primary_contact = serializer.validated_data.get('primary_contact')
+            if primary_contact:
+                primary_contact = User.objects.filter(email=primary_contact).first()
                 if primary_contact:
                     opportunity_service_history_data['primary_contact'] = primary_contact
 
             # Handling optional secondary_contact
-            secondary_contact_id = serializer.validated_data.get('secondary_contact_id')
-            if secondary_contact_id:
-                secondary_contact = User.objects.filter(id=secondary_contact_id).first()
+            secondary_contact = serializer.validated_data.get('secondary_contact')
+            if secondary_contact:
+                secondary_contact = User.objects.filter(email=secondary_contact).first()
                 if secondary_contact:
                     opportunity_service_history_data['secondary_contact'] = secondary_contact
                     
@@ -133,7 +158,7 @@ class OpportunityServiceUpdateAPIView(APIView):
             return OpportunityService.objects.get(pk=pk)
         except OpportunityService.DoesNotExist:
             return None
-    def put(self, request, pk, *args, **kwargs):
+    def post(self, request, pk, *args, **kwargs):
         opportunity_service = self.get_object(pk)
         if not opportunity_service:
             return Response({"error": "OpportunityService not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -141,7 +166,9 @@ class OpportunityServiceUpdateAPIView(APIView):
         serializer = OpportunityServiceSerializer(data=request.data)
        
         serializer.is_valid(raise_exception=True)
+   
         website_tracking_id = serializer.validated_data.get('website_tracking_id')
+        
         
         # Check for website_tracking_id uniqueness except for the current instance
         website_tracking_id = serializer.validated_data.get('website_tracking_id')
@@ -153,25 +180,23 @@ class OpportunityServiceUpdateAPIView(APIView):
             
         try:
             
-            opportunity_service.name = serializer.validated_data.get('name')
-            opportunity_service.type = serializer.validated_data.get('type')
             opportunity_service.website_tracking_id = serializer.validated_data.get('website_tracking_id')
             opportunity_service.json_data = serializer.validated_data.get('json_data', {})
             opportunity_service.api_request = serializer.validated_data.get('api_request', {})
             opportunity_service.api_response = serializer.validated_data.get('api_response', {})
              # Handling optional primary_contact
-            primary_contact_id = serializer.validated_data.get('primary_contact_id')
-            if primary_contact_id:
-                primary_contact = User.objects.filter(id=primary_contact_id).first()
+            primary_contact = serializer.validated_data.get('primary_contact')
+            if primary_contact:
+                primary_contact = User.objects.filter(email=primary_contact).first()
                 if primary_contact:
-                    opportunity_service['primary_contact'] = primary_contact
+                    opportunity_service.primary_contact = primary_contact
 
             # Handling optional secondary_contact
-            secondary_contact_id = serializer.validated_data.get('secondary_contact_id')
-            if secondary_contact_id:
-                secondary_contact = User.objects.filter(id=secondary_contact_id).first()
+            secondary_contact = serializer.validated_data.get('secondary_contact')
+            if secondary_contact:
+                secondary_contact = User.objects.filter(email=secondary_contact).first()
                 if secondary_contact:
-                    opportunity_service['secondary_contact'] = secondary_contact
+                    opportunity_service.secondary_contact = secondary_contact
                     
             
                 
@@ -193,7 +218,7 @@ class OpportunityServiceUpdateAPIView(APIView):
                     contact.identity_number = serializer.validated_data.get('user_contact_identity_number')
                     contact.save()  # Save the new contact details
 
-                opportunity_service['user_contact'] = contact
+                opportunity_service.user_contact = contact
 
             # update OpportunityServiceHistory object
             opportunity_service.save()
@@ -245,14 +270,18 @@ class OpportunityServiceListAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-
         
-
-class OpportunityServiceDetailAPIView(APIView):
+class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    def get_object(self, pk):
+        try:
+            return OpportunityService.objects.get(pk=pk)
+        except OpportunityService.DoesNotExist:
+            return None
+        
     def get(self, request, pk, *args, **kwargs):
         try:
-            opportunity_service_history = OpportunityService.objects.get(pk=pk, user=request.user)
+            opportunity_service_history = OpportunityService.objects.get(pk=pk, user=request.user, status='active')
             serializer = OpportunityServiceSerializer(opportunity_service_history)
             response_data = {
                 "success": True,
@@ -264,5 +293,22 @@ class OpportunityServiceDetailAPIView(APIView):
             return Response({"error": "Opportunity service history not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def delete(self, request, pk, *args, **kwargs):
+        opportunity_service = self.get_object(request.user, pk)
+        if not opportunity_service:
+            return Response({"error": "Service not found."}, status=status.HTTP_404_NOT_FOUND)
         
+        try:
+            # Set status to 'inactive' to soft delete the service
+            opportunity_service.status = 'inactive'
+            opportunity_service.save()
+        except (ValidationError, IntegrityError) as e:
+            # Handle specific database errors
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "message": "Successfully deactivated service"
+        }, status=status.HTTP_200_OK)
+

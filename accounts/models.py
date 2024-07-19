@@ -109,3 +109,13 @@ class User(AbstractBaseUser):
         Sets a value that will never be a valid hash
         """
         self.password = None
+
+
+class UserFeedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback from {self.name.name}"
