@@ -61,7 +61,7 @@ class User(AbstractBaseUser):
         unique=True
     )
     password = models.CharField(_("password"), max_length=128, null=True, blank=True)
-    # phone = models.CharField(max_length=20, null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
     broker_role = models.CharField(max_length=20, choices=BROKER_ROLES, null=True, blank=True)
     oauth_type = models.IntegerField(
         choices=OauthType.choices,
