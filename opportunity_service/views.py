@@ -311,4 +311,3 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
             "statusCode": status.HTTP_200_OK,
             "message": "Successfully deactivated service"
         }, status=status.HTTP_200_OK)
-
