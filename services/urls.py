@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import BrokerServiceHistoryCreateAPIView, BrokerServiceHistoryUpdateAPIView, BrokerServiceHistoryListAPIView, BrokerServiceHistoryRetrieveAPIView
+from .views import (BrokerServiceHistoryCreateAPIView, BrokerServiceHistoryUpdateAPIView, BrokerServiceHistoryListAPIView, 
+                    BrokerServiceHistoryRetrieveAPIView)
 
 urlpatterns = [
     path('broker-service-history/all/', BrokerServiceHistoryListAPIView.as_view(), name='broker-service-history-list'),

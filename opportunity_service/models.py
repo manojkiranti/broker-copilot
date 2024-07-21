@@ -18,8 +18,8 @@ class ContactsOpportunity(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
-    identity_number = models.CharField(max_length=99, null=True, blank=True)
-    
+    residency = models.CharField(max_length=99, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts')
     def __str__(self):
         return self.name
     

@@ -23,7 +23,7 @@ from .authenticator import GoogleOAuthHandler
 from .models import UserFeedback
 User = get_user_model()
 
-class UserListView(APIView):
+class UserListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):

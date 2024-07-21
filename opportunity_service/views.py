@@ -15,19 +15,24 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class OpportunityServiceListAPIView(APIView):
+class OpportunityServiceListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, *args, **kwargs):
         search_query = request.query_params.get('name', '')
+        
         try:
-            # Filter OpportunityService objects by search query if provided
-            opportunity_services = OpportunityService.objects.filter(
+            base_query = OpportunityService.objects.filter(
                 user=request.user, 
-                status='active'  # Ensure that only active services are fetched
+                status='active'
             )
+            # Filter OpportunityService objects by search query if provided
             if search_query:
-                opportunity_services = opportunity_services.filter(name__icontains=search_query)
+                # Using `Q` to add flexibility for possibly more complex search conditions in the future.
+                opportunity_services = base_query.filter(
+                    Q(name__icontains=search_query)
+                )
+            else:
+                opportunity_services = base_query
             serializer = OpportunityServiceSerializer(
                 opportunity_services, many=True)
             response_data = {
@@ -38,25 +43,7 @@ class OpportunityServiceListAPIView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-class AllOpportunityServiceListAPIView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensures authorized user can access this view
-
-    def get(self, request, *args, **kwargs):
-        opportunity_services = OpportunityService.objects.filter(status='active')
-        search_query = request.query_params.get('name', '')
-        if search_query:
-            opportunity_services = opportunity_services.filter(name__icontains=search_query)
-
-        serializer = OpportunityServiceSerializer(opportunity_services, many=True)
-        return Response({
-            "success": True,
-            "statusCode": status.HTTP_200_OK,
-            "data": serializer.data,
-        }, status=status.HTTP_200_OK)
-        
-class OpportunityServiceCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    
     def post(self, request, *args, **kwargs):
         
         serializer = OpportunityServiceSerializer(data=request.data)
@@ -148,7 +135,24 @@ class OpportunityServiceCreateAPIView(APIView):
         except Exception as e:
             print(e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-      
+
+        
+class AllOpportunityServiceListAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures authorized user can access this view
+
+    def get(self, request, *args, **kwargs):
+        opportunity_services = OpportunityService.objects.filter(status='active')
+        search_query = request.query_params.get('name', '')
+        if search_query:
+            opportunity_services = opportunity_services.filter(name__icontains=search_query)
+
+        serializer = OpportunityServiceSerializer(opportunity_services, many=True)
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "data": serializer.data,
+        }, status=status.HTTP_200_OK)
+        
 
 class OpportunityServiceUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -246,31 +250,6 @@ class OpportunityServiceUpdateAPIView(APIView):
             print(e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class OpportunityServiceListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, *args, **kwargs):
-        search_query = request.query_params.get('name', '')
-        try:
-            # Filter OpportunityService objects by search query if provided
-            if search_query:
-                opportunity_services = OpportunityService.objects.filter(
-                    Q(user=request.user) & Q(name__icontains=search_query)
-                )
-            else:
-                opportunity_services = OpportunityService.objects.filter(user=request.user)
-            serializer = OpportunityServiceSerializer(
-                opportunity_services, many=True)
-            response_data = {
-                "success": True,
-                "statusCode": status.HTTP_200_OK,
-                "data": serializer.data,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-        
 class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get_object(self, pk):
@@ -293,8 +272,9 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
             return Response({"error": "Opportunity service history not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     def delete(self, request, pk, *args, **kwargs):
-        opportunity_service = self.get_object(request.user, pk)
+        opportunity_service = OpportunityService.objects.get(user=request.user, pk=pk)
         if not opportunity_service:
             return Response({"error": "Service not found."}, status=status.HTTP_404_NOT_FOUND)
         
@@ -309,5 +289,36 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
         return Response({
             "success": True,
             "statusCode": status.HTTP_200_OK,
-            "message": "Successfully deactivated service"
+            "message": "Successfully deleted deal"
         }, status=status.HTTP_200_OK)
+
+class ContactListCreateUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        # Retrieve query parameters for email and broker_role
+        email = request.query_params.get('email', None)
+        phone = request.query_params.get('phone', None)
+        name = request.query_params.get('name', None)
+        
+        contacts = ContactsOpportunity.objects.all()
+        
+        # Apply email filter if provided
+        if email:
+            contacts = contacts.filter(email__icontains=email)
+
+        # Apply phone filter if provided
+        if phone:
+            contacts = contacts.filter(phone__icontains=phone)
+        
+        # Apply name filter if provided
+        if name:
+            contacts = contacts.filter(name__icontains=name)
+        
+        # Serialize the filtered queryset
+        serializer = ContactSerializer(contacts, many=True)
+        
+        return Response({
+            "success": True,
+            "data": serializer.data
+        },status=status.HTTP_200_OK)
