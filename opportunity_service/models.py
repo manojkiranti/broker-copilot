@@ -19,7 +19,11 @@ class ContactsOpportunity(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     residency = models.CharField(max_length=99, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts')
+    
+    created_by = models.ForeignKey(User, related_name='created_contacts', on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(User, related_name='updated_contacts', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.name
     

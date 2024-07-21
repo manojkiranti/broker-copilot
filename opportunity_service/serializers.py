@@ -12,8 +12,9 @@ class OpportunityServiceType(Enum):
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactsOpportunity
-        fields = ['name', 'email', 'phone', 'residency', 'user']
-        read_only_fields = ['user']
+        fields = ['name', 'email', 'phone', 'residency', 'created_by', 'updated_by', 'created_at', 'updated_at']
+        read_only_fields = ['created_by', 'updated_by', 'created_at', 'updated_at']
+        
         
 class OpportunityServiceSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
