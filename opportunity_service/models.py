@@ -20,8 +20,8 @@ class ContactsOpportunity(models.Model):
     phone = models.CharField(max_length=15, null=True, blank=True)
     residency = models.CharField(max_length=99, null=True, blank=True)
     
-    created_by = models.ForeignKey(User, related_name='created_contacts', on_delete=models.CASCADE)
-    updated_by = models.ForeignKey(User, related_name='updated_contacts', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, related_name='created_contacts', on_delete=models.CASCADE, null=True)
+    updated_by = models.ForeignKey(User, related_name='updated_contacts', on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
