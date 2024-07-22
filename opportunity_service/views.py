@@ -99,13 +99,15 @@ class OpportunityServiceListCreateAPIView(APIView):
                     # Update existing contact (except for the email)
                     contact.name = serializer.validated_data.get('user_contact_name', contact.name)
                     contact.phone = serializer.validated_data.get('user_contact_phone', contact.phone)
-                    contact.identity_number = serializer.validated_data.get('user_contact_identity_number', contact.identity_number)
+                    contact.residency = serializer.validated_data.get('user_contact_residency', contact.residency)
+                    contact.updated_by = request.user
                     contact.save()  # Save the updates to the existing contact
                 else:
                     # Set additional fields for a newly created contact
                     contact.name = serializer.validated_data.get('user_contact_name')
                     contact.phone = serializer.validated_data.get('user_contact_phone')
-                    contact.identity_number = serializer.validated_data.get('user_contact_identity_number')
+                    contact.residency = serializer.validated_data.get('user_contact_residency')
+                    contact.created_by = request.user
                     contact.save()  # Save the new contact details
 
                 opportunity_service_history_data['user_contact'] = contact
@@ -213,13 +215,15 @@ class OpportunityServiceUpdateAPIView(APIView):
                     # Update existing contact (except for the email)
                     contact.name = serializer.validated_data.get('user_contact_name', contact.name)
                     contact.phone = serializer.validated_data.get('user_contact_phone', contact.phone)
-                    contact.identity_number = serializer.validated_data.get('user_contact_identity_number', contact.identity_number)
+                    contact.residency = serializer.validated_data.get('user_contact_residency', contact.residency)
+                    contact.updated_by = request.user
                     contact.save()  # Save the updates to the existing contact
                 else:
                     # Set additional fields for a newly created contact
                     contact.name = serializer.validated_data.get('user_contact_name')
                     contact.phone = serializer.validated_data.get('user_contact_phone')
-                    contact.identity_number = serializer.validated_data.get('user_contact_identity_number')
+                    contact.residency = serializer.validated_data.get('user_contact_residency')
+                    contact.created_by = request.user
                     contact.save()  # Save the new contact details
 
                 opportunity_service.user_contact = contact
@@ -299,7 +303,7 @@ class ContactListCreateUpdateAPIView(APIView):
         # Retrieve query parameters for email and broker_role
         email = request.query_params.get('email', None)
         phone = request.query_params.get('phone', None)
-        name = request.query_params.get('name', None)
+        name = request.query_paramsd.get('name', None)
         
         contacts = ContactsOpportunity.objects.all()
         
@@ -322,3 +326,5 @@ class ContactListCreateUpdateAPIView(APIView):
             "success": True,
             "data": serializer.data
         },status=status.HTTP_200_OK)
+    
+        
