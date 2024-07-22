@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'accounts',
     'drf_yasg',
     'utils',
-    'opportunity_service',
+    'opportunity_app',
     'services',
     'anz',
     'ai_service',

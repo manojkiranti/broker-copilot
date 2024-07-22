@@ -1,14 +1,14 @@
 from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
-from opportunity_service.models import OpportunityService
+from opportunity_app.models import Opportunity
 User = get_user_model()
 
 class Service(models.Model):
     name = models.CharField(max_length=255)
     url=models.CharField(max_length=255)
     description = models.TextField()
-    opportunity_id = models.ForeignKey(OpportunityService, on_delete=models.CASCADE, null=True, related_name="services")
+    opportunity_id = models.ForeignKey(Opportunity, on_delete=models.CASCADE, null=True, related_name="services")
     status = models.CharField(max_length=50)
 
     def __str__(self):
