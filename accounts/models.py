@@ -118,4 +118,4 @@ class UserFeedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Feedback from {self.name.name}"
+        return f"Feedback from {self.user.email}"

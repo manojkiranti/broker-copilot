@@ -63,4 +63,3 @@ class GoogleVerifyAccessTokenSerializer(serializers.Serializer):
 
 class UserFeedbackSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=1024)
-    created_at = serializers.DateTimeField()

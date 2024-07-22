@@ -175,8 +175,42 @@ class UserFeedbackCreateAPIView(APIView):
                 user=request.user,
                 message=serializer.validated_data['message']
             )
-            # Serialize the newly created UserFeedback instance to return it in the response
-            return Response(UserFeedbackSerializer(user_feedback).data, status=status.HTTP_201_CREATED)
+             # Serialize the newly created UserFeedback instance
+            serialized_feedback = UserFeedbackSerializer(user_feedback).data
+            
+            # Prepare the payload for the AI service
+            ai_url = os.getenv('AI_URL')
+            url = f'{ai_url}/feedback'
+            payload = {
+                'username': request.user.email,  # Add the authenticated user's username
+                'feedback': serializer.validated_data['message']  # Add the feedback content received from the client
+            }
+
+            try:
+                # Send a POST request to the AI service with the received data
+                response = requests.post(url, json=payload)
+                response.raise_for_status()  # Raises an HTTPError for bad responses
+
+                # Get data from the response
+                ai_response_data = response.json()
+
+                # Combine the serialized feedback and the AI response data
+                combined_response = {
+                    'user_feedback': serialized_feedback,
+                    'ai_response': ai_response_data
+                }
+
+                # Return combined data as JSON
+                return Response(combined_response, status=status.HTTP_201_CREATED)
+            except requests.exceptions.HTTPError as e:
+                # Handle HTTP errors (e.g., response 4XX, 5XX)
+                return Response({'error': 'HTTP error occurred', 'details': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except requests.exceptions.RequestException as e:
+                # Handle other requests related errors (e.g., connection issues)
+                return Response({'error': 'Error connecting to AI service', 'details': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            except Exception as e:
+                # Handle other errors
+                return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 def my_view(request, template_name="index.html"):
