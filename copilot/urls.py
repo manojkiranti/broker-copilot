@@ -13,7 +13,7 @@ import anz.urls
 import ai_service.urls
 import opportunity_app.urls
 import compliance_service.urls
-
+import utils.urls
 # def get_redirect_url(request, *args, **kwargs):
 #     return render(request, 'index.html')
 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/ai/', include(ai_service.urls)),
     path('api/', include(opportunity_app.urls)),
     path('api/comliance-note/', include(compliance_service.urls)),
+    path('api/utils/', include(utils.urls)),
     # path('', my_view, name='my-view'),
     
 
