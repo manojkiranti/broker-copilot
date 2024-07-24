@@ -42,6 +42,10 @@ jobs:
           path: |
             release.zip
             !venv/
+      - name: Cleanup old runs
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          age: '10d'
 
   deploy:
     runs-on: ubuntu-latest
