@@ -9,6 +9,7 @@ class ContactsOpportunity(models.Model):
     class OpportunityStatus(models.TextChoices):
         ACTIVE  = 'active', 'Active',
         INACTIVE = 'inactive', 'Inactive'
+    
         
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(unique=True)
@@ -34,9 +35,16 @@ class Opportunity(models.Model):
         ACTIVE = 'active', 'Active'
         INACTIVE = 'inactive', 'Inactive'
         
+    class OpportunityStage(models.TextChoices):
+        ENGAGED = 'engaged', 'Engaged'
+        SUCCESS = 'success', 'Success'
+        UNSUCCESSFUL = 'unsuccessful', 'Unsuccessful'
+        IDEAL = 'ideal', 'Ideal'
+        
     name = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=20, choices=OpportunityType.choices)
     status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
+    stage = models.CharField(max_length=20, choices=OpportunityStage.choices, default=OpportunityStage.ENGAGED)
     
     website_tracking_id = models.CharField(unique=True, max_length=255, null=True)
     json_data = models.JSONField(default=dict)
