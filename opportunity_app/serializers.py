@@ -2,51 +2,49 @@ from rest_framework import serializers
 from .models import  ContactsOpportunity, Opportunity
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from enum import Enum
-
-class OpportunityType(Enum):
-    PURCHASE = 'purchase'
-    REFINANCE = 'refinance'
-    
     
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactsOpportunity
-        fields = ['name', 'email', 'phone', 'residency']
+        fields = ['id', 'name', 'email', 'phone', 'residency']
         read_only_fields = ['created_at', 'updated_at']
         
 
+class ContactDataSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100, allow_null=True, allow_blank=True)
+    email = serializers.EmailField(required=True)  # Email is required
+    phone = serializers.CharField(max_length=15, allow_null=True, allow_blank=True)
+    residency = serializers.CharField(max_length=99, allow_null=True, allow_blank=True)
+    
 class OpportunitySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
-    type = serializers.ChoiceField(choices=[(tag.value, tag.name) for tag in OpportunityType])
+    type = serializers.ChoiceField(choices=Opportunity.OpportunityType.choices)
     website_tracking_id = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
     json_data = serializers.JSONField(default=dict)
-    api_request = serializers.JSONField(default=dict)
-    api_response = serializers.JSONField(default=dict)
-    user_contact = ContactSerializer(read_only=True)
-    primary_contact = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    secondary_contact = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    created_by = serializers.CharField(max_length=150, required=False, allow_blank=True)
-    updated_by = serializers.CharField(max_length=150, required=False, allow_blank=True)
+   
+    primary_contact = ContactDataSerializer(required=False)
+    secondary_contact = ContactDataSerializer(required=False)
+    other_contact = ContactDataSerializer(required=False)
+    
+    primary_processor = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    secondary_processor = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    
     start_date = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
-    
-    user_contact_name = serializers.CharField(max_length=255, required=False)
-    user_contact_email = serializers.EmailField(max_length=99, required=False)
-    user_contact_phone = serializers.CharField(max_length=15, required=False)
-    user_contact_residency = serializers.CharField(max_length=255, required=False)
 
     def validate_website_tracking_id(self, value):
         if value == '':
             return None
         return value
-
+    
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         if 'json_data' in ret and isinstance(instance.json_data, dict):
             ret['json_data']['id'] = instance.id
+        # ret['primary_contact'] = ContactSerializer(instance.primary_contact).data if instance.primary_contact else None
+        # ret['secondary_contacts'] = ContactSerializer(instance.secondary_contacts.all(), many=True).data
         return ret
 
 

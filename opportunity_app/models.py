@@ -4,43 +4,53 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class OpportunityStatus(Enum):
-    ACTIVE = 'active'
-    INACTIVE = 'inactive'
-
-    def __str__(self):
-        return self.value
-class OpportunityType(Enum):
-    PURCHASE = 'purchase'
-    REFINANCE = 'refinance'
 
 class ContactsOpportunity(models.Model):
+    class OpportunityStatus(models.TextChoices):
+        ACTIVE  = 'active', 'Active',
+        INACTIVE = 'inactive', 'Inactive'
+        
     name = models.CharField(max_length=100, null=True, blank=True)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     residency = models.CharField(max_length=99, null=True, blank=True)
     
-    created_by = models.ForeignKey(User, related_name='created_contacts', on_delete=models.CASCADE, null=True)
-    updated_by = models.ForeignKey(User, related_name='updated_contacts', on_delete=models.CASCADE, null=True)
+    status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
+    
+    created_by = models.ForeignKey(User, related_name='created_contacts', on_delete=models.SET_NULL, null=True)
+    updated_by = models.ForeignKey(User, related_name='updated_contacts', on_delete=models.SET_NULL, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     def __str__(self):
-        return self.name
+        return self.email
     
 class Opportunity(models.Model):
-    status = models.CharField(max_length=20, choices=[(tag.value, tag.name) for tag in OpportunityStatus], default=OpportunityStatus.ACTIVE.value)
+    class OpportunityType(models.TextChoices):
+        PURCHASE = 'purchase', 'Purchase'
+        REFINANCE = 'refinance', 'Refinance'
+
+    class OpportunityStatus(models.TextChoices):
+        ACTIVE = 'active', 'Active'
+        INACTIVE = 'inactive', 'Inactive'
+        
     name = models.CharField(max_length=255, unique=True)
-    type = models.CharField(max_length=20, choices=[(tag.value, tag.name) for tag in OpportunityType])
+    type = models.CharField(max_length=20, choices=OpportunityType.choices)
+    status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
+    
     website_tracking_id = models.CharField(unique=True, max_length=255, null=True)
     json_data = models.JSONField(default=dict)
-    api_request = models.JSONField(default=dict)
-    api_response = models.JSONField(default=dict)
-    user_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="contact_opportunity_services")
-    primary_contact = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="primary_contact_opportunity_services")
-    secondary_contact = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="secondary_contact_opportunity_services")
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_opportunity_services")
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="updated_opportunity_services")
-    start_date = models.DateTimeField(auto_now_add=True)
+
+    primary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="primary_opportunities")
+    secondary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="secondary_opportunities")
+    other_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="other_opportunities")
+   
+    primary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="primary_processor_opportunity")
+    secondary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="secondary_processor_opportunity")
+    
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_opportunity")
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="updated_opportunity")
+    
     start_date = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)

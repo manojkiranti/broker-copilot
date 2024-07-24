@@ -1,5 +1,8 @@
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
+import logging
+from django.db import transaction
 from django.db import IntegrityError
 from django.db.models import Q
 from rest_framework import status
@@ -12,16 +15,13 @@ from .serializers import OpportunitySerializer, ContactSerializer
 from .models import Opportunity, ContactsOpportunity
 from django.contrib.auth import get_user_model
 
+logger = logging.getLogger(__name__)
+
 User = get_user_model()
 
 class OpportunityListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get_object(self, pk):
-        try:
-            return Opportunity.objects.get(pk=pk)
-        except Opportunity.DoesNotExist:
-            return None
     def get(self, request, *args, **kwargs):
         search_query = request.query_params.get('name', '')
         
@@ -40,6 +40,7 @@ class OpportunityListCreateAPIView(APIView):
                 opportunity_services = base_query
             serializer = OpportunitySerializer(
                 opportunity_services, many=True)
+           
             response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
@@ -50,97 +51,90 @@ class OpportunityListCreateAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def post(self, request, *args, **kwargs):
-        
+
         serializer = OpportunitySerializer(data=request.data)
-       
         serializer.is_valid(raise_exception=True)
-        name = serializer.validated_data.get('name')
-        if Opportunity.objects.filter(name=name).exists():
-            return Response({
-                "error": "An opportunity with this name already exists."
-            }, status=status.HTTP_400_BAD_REQUEST)
         
-        website_tracking_id = serializer.validated_data.get('website_tracking_id')
-        
-        # Check if website_tracking_id already exists
-        if website_tracking_id and Opportunity.objects.filter(website_tracking_id=website_tracking_id).exists():
-            return Response({
-                "error": "An opportunity with this website tracking ID already exists."
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
         try:
-            opportunity_data = {
-                'created_by': request.user,
-                'name': serializer.validated_data['name'],
-                'type': serializer.validated_data['type'],
-                'website_tracking_id': serializer.validated_data.get('website_tracking_id'),
-                'json_data': serializer.validated_data.get('json_data', {}),
-                'api_request': serializer.validated_data.get('api_request', {}),
-                'api_response': serializer.validated_data.get('api_response', {})
-            }
-            
-             # Handling optional primary_contact
-            primary_contact = serializer.validated_data.get('primary_contact')
-            if primary_contact:
-                primary_contact = User.objects.filter(email=primary_contact).first()
-                if primary_contact:
-                    opportunity_data['primary_contact'] = primary_contact
+            with transaction.atomic():
+                # Check if name already exists
+                name = serializer.validated_data.get('name')
+                if Opportunity.objects.filter(name=name).exists():
+                    return Response({
+                        "error": "An opportunity with this name already exists."
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Handling optional secondary_contact
-            secondary_contact = serializer.validated_data.get('secondary_contact')
-            if secondary_contact:
-                secondary_contact = User.objects.filter(email=secondary_contact).first()
-                if secondary_contact:
-                    opportunity_data['secondary_contact'] = secondary_contact
-                    
-            
+                # Check if website_tracking_id already exists
+                website_tracking_id = serializer.validated_data.get('website_tracking_id')
+                if website_tracking_id and Opportunity.objects.filter(website_tracking_id=website_tracking_id).exists():
+                    return Response({
+                        "error": "An opportunity with this website tracking ID already exists."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Create Opportunity
+                opportunity = Opportunity.objects.create(
+                    name=name,
+                    type=serializer.validated_data['type'],
+                    website_tracking_id=website_tracking_id,
+                    json_data=serializer.validated_data.get('json_data', {}),
+                    created_by=request.user,
+                )
                 
-            # Check if any user contact info fields are present in the serializer data
-            # Handling ContactsOpportunity relationship if provided
-            if 'user_contact_email' in serializer.validated_data:
-                email = serializer.validated_data['user_contact_email']
-                contact, created = ContactsOpportunity.objects.get_or_create(email=email)
-                if not created:
-                    # Update existing contact (except for the email)
-                    contact.name = serializer.validated_data.get('user_contact_name', contact.name)
-                    contact.phone = serializer.validated_data.get('user_contact_phone', contact.phone)
-                    contact.residency = serializer.validated_data.get('user_contact_residency', contact.residency)
-                    contact.updated_by = request.user
-                    contact.save()  # Save the updates to the existing contact
-                else:
-                    # Set additional fields for a newly created contact
-                    contact.name = serializer.validated_data.get('user_contact_name')
-                    contact.phone = serializer.validated_data.get('user_contact_phone')
-                    contact.residency = serializer.validated_data.get('user_contact_residency')
-                    contact.created_by = request.user
-                    contact.save()  # Save the new contact details
+                # Associate Primary Contact
+                primary_contact_data = serializer.validated_data.pop('primary_contact', None)
+                if primary_contact_data:
+                    primary_contact, created = ContactsOpportunity.objects.get_or_create(email=primary_contact_data['email'], defaults=primary_contact_data)
+                    if not created:
+                        for key, value in primary_contact_data.items():
+                            if key != 'email':  # Avoid updating the unique identifier
+                                setattr(primary_contact, key, value)
+                        primary_contact.save()
+                    opportunity.primary_contact = primary_contact
+                
+                
+                # Associate Secondary Contacts
+                secondary_contact_data = serializer.validated_data.pop('secondary_contact', None)
+                if secondary_contact_data:
+                    secondary_contact, created = ContactsOpportunity.objects.get_or_create(
+                        email=secondary_contact_data['email'],
+                        defaults=secondary_contact_data
+                    )
+                    if not created:
+                        # Update the fields if the contact already existed
+                        for key, value in secondary_contact_data.items():
+                            if key != 'email':  # Avoid updating the unique identifier
+                                setattr(secondary_contact, key, value)
+                        secondary_contact.save()
+                    opportunity.secondary_contact = secondary_contact
 
-                opportunity_data['user_contact'] = contact
+                # Update Primary Processor
+                primary_processor_data = serializer.validated_data.get('primary_processor')
+                if primary_processor_data:
+                    primary_processor = get_object_or_404(User, email=primary_processor_data)
+                    opportunity.primary_processor = primary_processor
 
-            # Create OpportunityServiceHistory object
-            opportunity_service_history = Opportunity.objects.create(**opportunity_data)
+                # Update Secondary Processor
+                secondary_processor_data = serializer.validated_data.get('secondary_processor')
+                if secondary_processor_data:
+                    secondary_processor = get_object_or_404(User, email=secondary_processor_data)
+                    opportunity.secondary_processor = secondary_processor
 
+                opportunity.save()
 
-            # Prepare response data including ContactInfo details if created
-            response_data = {
-                "success": True,
-                "statusCode": status.HTTP_201_CREATED,
-                "data": {
-                    "id": opportunity_service_history.id,
-                    "name": opportunity_service_history.name.lower(),
-                    "api_request": opportunity_service_history.api_request,
-                    "api_response": opportunity_service_history.api_response,
-                    "status": opportunity_service_history.status,
-                    "start_date": opportunity_service_history.start_date,
-                    "json_data": opportunity_service_history.json_data,
-                    "user_contact": ContactSerializer(opportunity_service_history.user_contact).data
+                # Prepare response data
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_201_CREATED,
+                    "data": {
+                        "id": opportunity.id,
+                        "name": opportunity.name,
+                    }
                 }
-            }
 
-            return Response(response_data, status=status.HTTP_201_CREATED)
+                return Response(response_data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            print(e)
+            # logger.error(f"Error creating opportunity: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         
@@ -160,8 +154,6 @@ class AllOpportunityServiceListAPIView(APIView):
             "data": serializer.data,
         }, status=status.HTTP_200_OK)
         
-
-
         
 class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -212,20 +204,20 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
 
     # Update Opportunity
     def patch(self, request, pk, *args, **kwargs):
-        opportunity_service = self.get_object(pk)
-        if not opportunity_service:
+        opportunity = self.get_object(pk)
+        if not opportunity:
             return Response({"error": "Deals not found."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = OpportunitySerializer(data=request.data)
        
         serializer.is_valid(raise_exception=True)
-        if request.user != opportunity_service.created_by and \
-             request.user != opportunity_service.primary_contact and \
-             request.user != opportunity_service.secondary_contact:
+        if request.user != opportunity.created_by and \
+             request.user != opportunity.primary_contact and \
+             request.user != opportunity.secondary_contact:
             return Response({"error": "You don't have permission to update this Deals."}, status=status.HTTP_403_FORBIDDEN)
         
         name = serializer.validated_data.get('name')
-        if Opportunity.objects.filter(name=name).exclude(pk=opportunity_service.pk).exists():
+        if Opportunity.objects.filter(name=name).exclude(pk=opportunity.pk).exists():
             return Response({"error": "An Deal with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
             
         website_tracking_id = serializer.validated_data.get('website_tracking_id')
@@ -240,78 +232,71 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            
-            opportunity_service.name = serializer.validated_data.get('name')
-            opportunity_service.type = serializer.validated_data.get('type')
-            opportunity_service.website_tracking_id = serializer.validated_data.get('website_tracking_id')
-            opportunity_service.json_data = serializer.validated_data.get('json_data', {})
-            opportunity_service.api_request = serializer.validated_data.get('api_request', {})
-            opportunity_service.api_response = serializer.validated_data.get('api_response', {})
-             # Handling optional primary_contact
-            primary_contact = serializer.validated_data.get('primary_contact')
-            if primary_contact:
-                primary_contact = User.objects.filter(email=primary_contact).first()
-                if primary_contact:
-                    opportunity_service.primary_contact = primary_contact
+            with transaction.atomic():
+                opportunity.name = name
+                opportunity.type = serializer.validated_data.get('type')
+                opportunity.website_tracking_id = website_tracking_id
+                opportunity.json_data = serializer.validated_data.get('json_data', {})
 
-            # Handling optional secondary_contact
-            secondary_contact = serializer.validated_data.get('secondary_contact')
-            if secondary_contact:
-                secondary_contact = User.objects.filter(email=secondary_contact).first()
-                if secondary_contact:
-                    opportunity_service.secondary_contact = secondary_contact
-                    
-            
+                # Associate Primary Contact
+                primary_contact_data = serializer.validated_data.pop('primary_contact', None)
+                if primary_contact_data:
+                    primary_contact, created = ContactsOpportunity.objects.get_or_create(email=primary_contact_data['email'], defaults=primary_contact_data)
+                    if not created:
+                        for key, value in primary_contact_data.items():
+                            if key != 'email':  # Avoid updating the unique identifier
+                                setattr(primary_contact, key, value)
+                        primary_contact.save()
+                    opportunity.primary_contact = primary_contact
+                        
                 
-            # Check if any user contact info fields are present in the serializer data
-            # Handling ContactsOpportunity relationship if provided
-            if 'user_contact_email' in serializer.validated_data:
-                email = serializer.validated_data['user_contact_email']
-                contact, created = ContactsOpportunity.objects.get_or_create(email=email)
-                if not created:
-                    # Update existing contact (except for the email)
-                    contact.name = serializer.validated_data.get('user_contact_name', contact.name)
-                    contact.phone = serializer.validated_data.get('user_contact_phone', contact.phone)
-                    contact.residency = serializer.validated_data.get('user_contact_residency', contact.residency)
-                    contact.updated_by = request.user
-                    contact.save()  # Save the updates to the existing contact
-                else:
-                    # Set additional fields for a newly created contact
-                    contact.name = serializer.validated_data.get('user_contact_name')
-                    contact.phone = serializer.validated_data.get('user_contact_phone')
-                    contact.residency = serializer.validated_data.get('user_contact_residency')
-                    contact.created_by = request.user
-                    contact.save()  # Save the new contact details
+                    
+                 # Associate Secondary Contacts
+                secondary_contact_data = serializer.validated_data.pop('secondary_contact', None)
+                if secondary_contact_data:
+                    secondary_contact, created = ContactsOpportunity.objects.get_or_create(
+                        email=secondary_contact_data['email'],
+                        defaults=secondary_contact_data
+                    )
+                    if not created:
+                        # Update the fields if the contact already existed
+                        for key, value in secondary_contact_data.items():
+                            if key != 'email':  # Avoid updating the unique identifier
+                                setattr(secondary_contact, key, value)
+                        secondary_contact.save()
+                    opportunity.secondary_contact = secondary_contact
 
-                opportunity_service.user_contact = contact
+                # Update Primary Processor
+                primary_processor_data = serializer.validated_data.get('primary_processor')
+                if primary_processor_data:
+                    primary_processor = get_object_or_404(User, email=primary_processor_data)
+                    opportunity.primary_processor = primary_processor
 
-            # update OpportunityServiceHistory object
-            opportunity_service.save()
+                # Update Secondary Processor
+                secondary_processor_data = serializer.validated_data.get('secondary_processor')
+                if secondary_processor_data:
+                    secondary_processor = get_object_or_404(User, email=secondary_processor_data)
+                    opportunity.secondary_processor = secondary_processor
 
-
-            # Prepare response data including ContactInfo details if created
-            response_data = {
-                "success": True,
-                "statusCode": status.HTTP_201_CREATED,
-                "data": {
-                    "id": opportunity_service.id,
-                    "name": opportunity_service.name.lower(),
-                    "api_request": opportunity_service.api_request,
-                    "api_response": opportunity_service.api_response,
-                    "status": opportunity_service.status,
-                    "start_date": opportunity_service.start_date,
-                    "json_data": opportunity_service.json_data,
-                    "user_contact": ContactSerializer(opportunity_service.user_contact).data
+                opportunity.save()
+                
+                # Prepare response data including ContactInfo details if created
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_201_CREATED,
+                    "data": {
+                        "id": opportunity.id,
+                        "name": opportunity.name.lower()
+                    }
                 }
-            }
 
-            return Response(response_data, status=status.HTTP_200_OK)
+                return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             print(e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class ContactListCreateAPIView(APIView):
+class ContactListCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request, *args, **kwargs):
@@ -377,5 +362,49 @@ class ContactListCreateAPIView(APIView):
         except Exception as e:
             print(e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
         
+    def patch(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        if not email:
+            return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        contact, created = ContactsOpportunity.objects.get_or_create(email=email)
+        serializer = ContactSerializer(contact, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            # Exclude email from being updated, even if included in the request
+            validated_data = {k: v for k, v in serializer.validated_data.items() if k != 'email'}
+            for key, value in validated_data.items():
+                setattr(contact, key, value)
+            
+            contact.updated_by = request.user
+            contact.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+class ContactDetailUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def put(self, request, *args, **kwargs):
+        contact_id = kwargs.get('pk')
+        contact = get_object_or_404(ContactsOpportunity, pk=contact_id)
+        
+        serializer = ContactSerializer(contact, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(updated_by=request.user)
+            return Response({
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data
+            })
+
+    def delete(self, request, *args, **kwargs):
+        contact_id = kwargs.get('pk')
+        contact = get_object_or_404(ContactsOpportunity, pk=contact_id)
+        contact.status = ContactsOpportunity.OpportunityStatus.INACTIVE
+        contact.save(update_fields=['status'])
+
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_204_NO_CONTENT,
+            "message": "Contact has been deleted."
+        })
