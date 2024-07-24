@@ -5,6 +5,14 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class Stage(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
+
 class ContactsOpportunity(models.Model):
     class OpportunityStatus(models.TextChoices):
         ACTIVE  = 'active', 'Active',
@@ -34,17 +42,12 @@ class Opportunity(models.Model):
     class OpportunityStatus(models.TextChoices):
         ACTIVE = 'active', 'Active'
         INACTIVE = 'inactive', 'Inactive'
-        
-    class OpportunityStage(models.TextChoices):
-        ENGAGED = 'engaged', 'Engaged'
-        SUCCESS = 'success', 'Success'
-        UNSUCCESSFUL = 'unsuccessful', 'Unsuccessful'
-        IDEAL = 'ideal', 'Ideal'
+
         
     name = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=20, choices=OpportunityType.choices)
     status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
-    stage = models.CharField(max_length=20, choices=OpportunityStage.choices, default=OpportunityStage.ENGAGED)
+    stage = models.ForeignKey(Stage, on_delete=models.SET_NULL, null=True, related_name='opportunities')
     
     website_tracking_id = models.CharField(unique=True, max_length=255, null=True)
     json_data = models.JSONField(default=dict)
