@@ -175,7 +175,7 @@ class WebisteCreateContactAPIView(APIView):
                             'email': email,
                             'phone': entry.get('193', None) if entry.get('193', '').strip() else None,
                             'residency': entry.get('46.6', None) if entry.get('46.6', '').strip() else None,
-                            'website_feild_id': entry.get('id'),
+                            'website_field_id': entry.get('id'),
                             'website_form_id': entry.get('form_id'),
                             'website_date_updated': date_updated,
                         }

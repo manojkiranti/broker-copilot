@@ -24,7 +24,7 @@ class ContactsOpportunity(models.Model):
     phone = models.CharField(max_length=15, null=True, blank=True)
     residency = models.CharField(max_length=99, null=True, blank=True)
     country_code = models.CharField(max_length=20, null=True, blank=True)
-    website_feild_id = models.CharField(max_length=50, null=True, blank=True)
+    website_field_id = models.CharField(max_length=50, null=True, blank=True)
     website_form_id = models.CharField(max_length=20, null=True, blank=True)
     website_date_updated = models.DateTimeField(null=True, blank=True)
     
