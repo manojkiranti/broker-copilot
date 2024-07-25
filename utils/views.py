@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from opportunity_app.models import ContactsOpportunity
 import os
 import re
+import datetime
 # Create your views here.
 
 # Helper function to get encoded headers
@@ -155,7 +156,10 @@ class WebisteCreateContactAPIView(APIView):
                 for entry in data['entries']:
                     # Create and save new Contact instance
                     email = entry.get('192')
-
+                    date_str = entry.get('date_updated')
+                    
+                    # Parse the datetime string
+                    date_updated = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S') if date_str else None
                     # Validate email
                     if email and self.validate_email(email) and not self.email_exists(email):
                         # Prepare the payload, setting None for any empty values
@@ -170,7 +174,10 @@ class WebisteCreateContactAPIView(APIView):
                             'name': name,
                             'email': email,
                             'phone': entry.get('193', None) if entry.get('193', '').strip() else None,
-                            'residency': entry.get('46.6', None) if entry.get('46.6', '').strip() else None
+                            'residency': entry.get('46.6', None) if entry.get('46.6', '').strip() else None,
+                            'website_feild_id': entry.get('id'),
+                            'website_form_id': entry.get('form_id'),
+                            'website_date_updated': date_updated,
                         }
       
                         
