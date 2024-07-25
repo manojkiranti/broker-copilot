@@ -23,6 +23,7 @@ class ContactsOpportunity(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, null=True, blank=True)
     residency = models.CharField(max_length=99, null=True, blank=True)
+    country_code = models.CharField(max_length=20, null=True, blank=True)
     
     status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
     

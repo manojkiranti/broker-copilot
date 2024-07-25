@@ -15,6 +15,7 @@ class ContactDataSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)  # Email is required
     phone = serializers.CharField(max_length=15, allow_null=True, allow_blank=True)
     residency = serializers.CharField(max_length=99, allow_null=True, allow_blank=True)
+    country_code =serializers.CharField(max_length=10, allow_null=True, allow_blank=True)
     
 class OpportunitySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
