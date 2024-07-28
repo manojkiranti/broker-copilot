@@ -4,6 +4,7 @@ from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
 from compliance_service.serializers import UserContentSerializer
 from .data.content import SYSTEM_CONTENT
+from .models import SystemPrompt
 import requests
 import os
 
@@ -19,8 +20,20 @@ class GenerateComplianceNoteAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         user_content = serializer.validated_data['user_content']
         system_content_type = serializer.validated_data['compliance_field']
+        
+        try:
+            # Fetch the latest entry from SystemPrompt for the given compliance_field
+            prompt = SystemPrompt.objects.values(system_content_type).latest('id')
+            system_content = prompt[system_content_type]
+        except SystemPrompt.DoesNotExist:
+            return Response({"error": "System content not found"}, status=status.HTTP_404_NOT_FOUND)
+        except KeyError:
+            return Response({"error": "Invalid compliance field"}, status=status.HTTP_400_BAD_REQUEST)
+ 
 
-        system_content = SYSTEM_CONTENT.get(system_content_type, 'loan_objectives')
+        
+
+        # system_content = SYSTEM_CONTENT.get(system_content_type, 'loan_objectives')
         # Set up the header with your OpenAI API Key
         bearer_token = os.getenv('OPEN_AI_KEY')
         temperature = float(os.getenv('OPEN_AI_TEMPERATURE'))

@@ -11,6 +11,7 @@ class UserContentSerializer(serializers.Serializer):
             ('loan_prioritised', 'Loan Prioritized'),
             ('lender_loan', 'Lender Loan'),
             ('loan_structure', 'Loan Structure'),
+            ('goals_objectives', 'Goals Objectives'),
         ],
         required=True
     )
