@@ -6,16 +6,17 @@ User = get_user_model()
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactsOpportunity
-        fields = ['id', 'name', 'email', 'phone', 'residency']
+        fields = ['id', 'name', 'email', 'phone', 'residency', 'citizenship']
         read_only_fields = ['created_at', 'updated_at']
         
 
 class ContactDataSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100, allow_null=True, allow_blank=True)
+    name = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
     email = serializers.EmailField(required=True)  # Email is required
-    phone = serializers.CharField(max_length=15, allow_null=True, allow_blank=True)
-    residency = serializers.CharField(max_length=99, allow_null=True, allow_blank=True)
-    country_code =serializers.CharField(max_length=10, allow_null=True, allow_blank=True)
+    phone = serializers.CharField(max_length=15, allow_null=True, allow_blank=True, required=False)
+    citizenship =  serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
+    residency = serializers.CharField(max_length=99, allow_null=True, allow_blank=True, required=False)
+    country_code =serializers.CharField(max_length=10, allow_null=True, allow_blank=True, required=False)
     
 class OpportunitySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)

@@ -153,13 +153,19 @@ class WebsiteCreateLatestContactAPIView(APIView):
 
                         # Create and save new Contact instance
                         email = entry.get('192')
+                        email_2 = entry.get('960')
                         date_str = entry.get('date_updated')
                         
                         # Parse the datetime string
                         date_updated = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S') if date_str else None
                         phone = entry.get('193', '').strip()
+                        phone_2 = entry.get('1074', '').strip()
                         if phone:
                             phone = phone[:24]
+                            
+                        if phone_2:
+                            phone_2 = phone_2[:24]
+                            
                         # Validate email
                         if email and self.validate_email(email):
                             # Prepare the payload, setting None for any empty values
@@ -174,6 +180,7 @@ class WebsiteCreateLatestContactAPIView(APIView):
                                 'name': name,
                                 'email': email,
                                 'phone': phone or None,
+                                'citizenship': entry.get('41', None) if entry.get('41', '').strip() else None,
                                 'residency': entry.get('46.6', None) if entry.get('46.6', '').strip() else None,
                                 'website_field_id': entry.get('id'),
                                 'website_form_id': entry.get('form_id'),
@@ -187,6 +194,31 @@ class WebsiteCreateLatestContactAPIView(APIView):
                                 email=email,  # Look up by email
                                 defaults=payload  # Update these fields or create new entry with these
                             )
+                            
+                        # Validate email
+                        if email_2 and self.validate_email(email_2):
+                            # Prepare the payload, setting None for any empty values
+                            name_part1 = entry.get('396', '').strip()
+                            name_part2 = entry.get('398', '').strip()
+                            # Determine the name based on the availability of parts
+                            if name_part1 or name_part2:
+                                name_2 = f"{name_part1} {name_part2}".strip()
+                            else:
+                                name = None
+                            payload = {
+                                'name': name_2,
+                                'email': email_2,
+                                'phone': phone_2 or None,
+                                'citizenship': entry.get('409', None) if entry.get('409', '').strip() else None,
+                                'residency': entry.get('419.6', None) if entry.get('419.6', '').strip() else None,
+                                'website_field_id': entry.get('id'),
+                                'website_form_id': entry.get('form_id'),
+                                'website_date_updated': date_updated,
+                            }
+        
+                            
+                            # Create and save new Contact instance
+                            ContactsOpportunity.objects.create(**payload)
                 return Response(data, status=status.HTTP_200_OK)
         except requests.exceptions.HTTPError as e:
                 # Handle HTTP errors (e.g., response 4XX, 5XX)
@@ -250,11 +282,18 @@ class WebisteCreateContactAPIView(APIView):
                         email = entry.get('192')
                         date_str = entry.get('date_updated')
                         
+                        email_2 = entry.get('960')
+                        
                         # Parse the datetime string
                         date_updated = datetime.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S') if date_str else None
                         phone = entry.get('193', '').strip()
+                        phone_2 = entry.get('1074', '').strip()
+                        
                         if phone:
                             phone = phone[:24]
+                        if phone_2:
+                            phone_2 = phone_2[:24]
+                            
                         # Validate email
                         if email and self.validate_email(email) and not self.email_exists(email):
                             # Prepare the payload, setting None for any empty values
@@ -269,7 +308,33 @@ class WebisteCreateContactAPIView(APIView):
                                 'name': name,
                                 'email': email,
                                 'phone': phone or None,
+                                'citizenship': entry.get('41', None) if entry.get('41', '').strip() else None,
                                 'residency': entry.get('46.6', None) if entry.get('46.6', '').strip() else None,
+                                'website_field_id': entry.get('id'),
+                                'website_form_id': entry.get('form_id'),
+                                'website_date_updated': date_updated,
+                            }
+        
+                            
+                            # Create and save new Contact instance
+                            ContactsOpportunity.objects.create(**payload)
+                            
+                        # Validate email
+                        if email_2 and self.validate_email(email_2) and not self.email_exists(email_2):
+                            # Prepare the payload, setting None for any empty values
+                            name_part1 = entry.get('396', '').strip()
+                            name_part2 = entry.get('398', '').strip()
+                            # Determine the name based on the availability of parts
+                            if name_part1 or name_part2:
+                                name_2 = f"{name_part1} {name_part2}".strip()
+                            else:
+                                name = None
+                            payload = {
+                                'name': name_2,
+                                'email': email_2,
+                                'phone': phone_2 or None,
+                                'citizenship': entry.get('409', None) if entry.get('409', '').strip() else None,
+                                'residency': entry.get('419.6', None) if entry.get('419.6', '').strip() else None,
                                 'website_field_id': entry.get('id'),
                                 'website_form_id': entry.get('form_id'),
                                 'website_date_updated': date_updated,

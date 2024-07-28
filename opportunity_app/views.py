@@ -54,7 +54,7 @@ class OpportunityListCreateAPIView(APIView):
 
         serializer = OpportunitySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+
         try:
             with transaction.atomic():
                 # Check if name already exists
