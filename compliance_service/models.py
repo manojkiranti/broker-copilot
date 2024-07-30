@@ -15,4 +15,4 @@ class SystemPrompt(models.Model):
     loan_structure = models.TextField(blank=True, null=True)
     goals_objectives = models.TextField(blank=True, null=True)
     def __str__(self):
-        return f"Compliance Note {self.id}"
+        return f"Compliance Note Systemprompt"
