@@ -9,6 +9,8 @@ from opportunity_app.models import ContactsOpportunity
 import os
 import re
 import datetime
+import urllib.parse
+from urllib.parse import unquote
 # Create your views here.
 
 # Helper function to get encoded headers
@@ -36,12 +38,16 @@ class WebsiteDataListAPIView(APIView):
         
         # Check if search parameter is provided
         search_param = request.query_params.get('search')
+        # import pdb; pdb.set_trace()
+     
         if search_param:
-            params["search"] = search_param
+            decoded_search = unquote(search_param)
+            # Assuming the server expects the search parameter as a JSON-encoded string
+            params["search"] = decoded_search
             
         # Get encoded headers
         headers = get_encoded_headers()
-        
+        print(params)
         try:
             # Make the GET request
             response = requests.get(base_url, params=params, headers=headers)
@@ -122,6 +128,9 @@ class WebsiteCreateLatestContactAPIView(APIView):
         pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
         return re.match(pattern, email) is not None
     
+    def email_exists(self, email):
+        # Check if an email already exists in the database
+        return ContactsOpportunity.objects.filter(email=email).exists()
     
     def post(self, request, *args, **kwargs):
         from_id = request.data.get('from_id', 8)
@@ -167,7 +176,7 @@ class WebsiteCreateLatestContactAPIView(APIView):
                             phone_2 = phone_2[:24]
                             
                         # Validate email
-                        if email and self.validate_email(email):
+                        if email and self.validate_email(email) and not self.email_exists(email):
                             # Prepare the payload, setting None for any empty values
                             name_part1 = entry.get('186', '').strip()
                             name_part2 = entry.get('188', '').strip()
@@ -196,7 +205,7 @@ class WebsiteCreateLatestContactAPIView(APIView):
                             )
                             
                         # Validate email
-                        if email_2 and self.validate_email(email_2):
+                        if email_2 and self.validate_email(email_2) and not self.email_exists(email_2):
                             # Prepare the payload, setting None for any empty values
                             name_part1 = entry.get('396', '').strip()
                             name_part2 = entry.get('398', '').strip()
