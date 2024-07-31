@@ -12,6 +12,23 @@ class Stage(models.Model):
     def __str__(self):
         return self.name
     
+class LenderChoices(models.TextChoices):
+    AAA_FINANCE = 'aaa_finance', 'AAA Finance'
+    ANZ_BANK = 'anz_bank', 'ANZ Bank'
+    BOQ = 'boq', 'BOQ'
+    CBA = 'cba', 'CBA'
+    HERITAGE = 'heritage', 'Heritage'
+    ST_GEORGE_BANK = 'st_george_bank', 'St. George Bank'
+    MACQUARIE_BANK = 'macquarie_bank', 'Macquarie Bank'
+    HSBC = 'hsbc', 'HSBC'
+    NAB = 'nab', 'NAB'
+    SUNCORP = 'suncorp', 'Suncorp'
+    WESTPAC = 'westpac', 'Westpac'
+    BC_INVEST = 'bc_invest', 'BC Invest'
+    BRIGHTEN = 'brighten', 'Brighten'
+    LA_TROBE = 'la_trobe', 'LaTrobe'
+    MEZY = 'mezy', 'MEZY'
+    MA_MONEY = 'ma_money', 'MA Money'
 
 class ContactsOpportunity(models.Model):
     class OpportunityStatus(models.TextChoices):

@@ -369,3 +369,12 @@ class WebisteCreateContactAPIView(APIView):
                 return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         # Return a successful response at the end of the data fetch
         return Response({'message': 'Data fetched and processed successfully'}, status=status.HTTP_200_OK)
+    
+    
+    
+    
+    
+    
+    
+    
+    

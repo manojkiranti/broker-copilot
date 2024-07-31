@@ -1,18 +1,77 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views  import APIView
+from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
-from compliance_service.serializers import UserContentSerializer
+from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer
 from .data.content import SYSTEM_CONTENT
-from .models import SystemPrompt
+from .models import SystemPrompt, Note
+from opportunity_app.models import Opportunity
 import requests
 import os
 
 
 # Create your views here.
+class ComplianceNoteListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        serializer = ComplianceNoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            with transaction.atomic():
+                opportunity_id = serializer.validated_data['opportunity_id']
+                if not Opportunity.objects.filter(id=opportunity_id).exists():
+                    return Response({
+                        "error": {
+                            "statusCode": status.HTTP_400_BAD_REQUEST,
+                            "message": "A deal with the given id does not exist",
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                note_data = {
+                    'document_identification_method': serializer.validated_data.get('document_identification_method'),
+                    'client_interview_method': serializer.validated_data.get('client_interview_method'),
+                    'credit_guide_provided': serializer.validated_data.get('credit_guide_provided'),
+                    'estimated_settlement_date': serializer.validated_data.get('estimated_settlement_date'),
+                    'facility_amount': serializer.validated_data.get('facility_amount'),
+                    'rate_type': serializer.validated_data.get('rate_type'),
+                    'repayment_type': serializer.validated_data.get('repayment_type'),
+                    'repayment_frequency': serializer.validated_data.get('repayment_frequency'),
+                    'offset': serializer.validated_data.get('offset'),
+                    'cash_out_involved': serializer.validated_data.get('cash_out_involved'),
+                    'loan_structure': serializer.validated_data.get('loan_structure'),
+                    'loan_scenario_lender_1': serializer.validated_data.get('loan_scenario_lender_1'),
+                    'loan_scenario_lender_2': serializer.validated_data.get('loan_scenario_lender_2'),
+                    'loan_scenario_lender_3': serializer.validated_data.get('loan_scenario_lender_3'),
+                    'loan_objective_note': serializer.validated_data.get('loan_objective_note'),
+                    'loan_requirement_note': serializer.validated_data.get('loan_requirement_note'),
+                    'loan_circumstances_note': serializer.validated_data.get('loan_circumstances_note'),
+                    'loan_financial_awareness_note': serializer.validated_data.get('loan_financial_awareness_note'),
+                    'loan_structure_note': serializer.validated_data.get('loan_structure_note'),
+                    'loan_prioritised_note': serializer.validated_data.get('loan_prioritised_note'),
+                    'lender_loan_note': serializer.validated_data.get('lender_loan_note'),
+                    'status': 'active',
+                    'opportunity_id': opportunity_id,
+                    'created_by_id': request.user.id,
+                    'updated_by_id': request.user.id,
+                }
+                note = Note.objects.create(**note_data)
+                serializer_data = ComplianceNoteSerializer(note)
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_201_CREATED,
+                    "data": serializer_data.data,
+                }
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            # logger.error(f"Error creating opportunity: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 class GenerateComplianceNoteAPIView(APIView):
-    #  permission_classes = [IsAuthenticated]
+     permission_classes = [IsAuthenticated]
 
      def post(self, request, *args, **kwargs):
         serializer = UserContentSerializer(data=request.data)
