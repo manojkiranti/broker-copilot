@@ -17,6 +17,9 @@ class ContactDataSerializer(serializers.Serializer):
     citizenship =  serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
     residency = serializers.CharField(max_length=99, allow_null=True, allow_blank=True, required=False)
     country_code =serializers.CharField(max_length=10, allow_null=True, allow_blank=True, required=False)
+
+class OpportunityNameSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
     
 class OpportunitySerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)

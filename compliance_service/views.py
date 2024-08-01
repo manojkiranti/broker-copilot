@@ -15,6 +15,19 @@ import os
 class ComplianceNoteListCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
+    def get(self, request, *args, **kwargs):
+        try:
+            notes = Note.objects.filter(created_by=request.user,status='active').order_by('-updated_at')
+            serializer = ComplianceNoteSerializer(notes, many=True)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+        
     def post(self, request, *args, **kwargs):
         serializer = ComplianceNoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
