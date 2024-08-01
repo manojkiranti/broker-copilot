@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'services',
     'anz',
     'ai_service',
-    'compliance_service'
+    'compliance_service',
+    'dashboard_app'
 ]
 
 MIDDLEWARE = [
