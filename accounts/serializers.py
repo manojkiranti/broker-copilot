@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from django.db.models import Q
 from django.contrib.auth import get_user_model
-
+# from .models import User
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
@@ -54,7 +54,14 @@ class UserListSerializer(serializers.ModelSerializer):
         """Method to get the state of the user's profile completion."""
         return obj.is_profile_complete()
         
-        
+class UserUpdateSerializer(serializers.Serializer):
+    fullname = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    broker_role = serializers.ChoiceField(choices=[
+            ('broker', 'Broker'),
+            ('processor', 'Processor')
+        ], required=False, allow_blank=True)
+    
 class GoogleVerifyCodeForTokenSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=255)
 

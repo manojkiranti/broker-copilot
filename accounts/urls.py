@@ -5,7 +5,9 @@ from .views import (
     GoogleVerifyCodeForToken,
     GoogleVerifyAccessToken,
     UserListCreateAPIView,
-    UserFeedbackCreateAPIView
+    UserFeedbackCreateAPIView,
+    UserUpdateAPIView,
+    UserDetailAPIView
 )
 
 urlpatterns = [
@@ -14,5 +16,7 @@ urlpatterns = [
     path('auth/google-verify-token', GoogleVerifyCodeForToken.as_view(), name='google-verify-token'),
     path('auth/google-access-token', GoogleVerifyAccessToken.as_view(), name='google-access-token'),
     path('auth/users', UserListCreateAPIView.as_view(), name='users-list-create'),
-    path('auth/feedback', UserFeedbackCreateAPIView.as_view(), name='user-feedback')
-]
+    path('auth/feedback', UserFeedbackCreateAPIView.as_view(), name='user-feedback'),
+    path('user/update/', UserUpdateAPIView.as_view(), name='user-update'),
+    path('user/me/', UserDetailAPIView.as_view(), name='user-detail'),
+]   

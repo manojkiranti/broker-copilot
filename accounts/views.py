@@ -17,7 +17,8 @@ from .serializers import (
     GoogleVerifyAccessTokenSerializer, 
     GoogleVerifyCodeForTokenSerializer,
     UserListSerializer,
-    UserFeedbackSerializer
+    UserFeedbackSerializer,
+    UserUpdateSerializer
 )
 from .authenticator import GoogleOAuthHandler
 from .models import UserFeedback
@@ -212,7 +213,44 @@ class UserFeedbackCreateAPIView(APIView):
                 # Handle other errors
                 return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     
+    def patch(self, request):
+        user = request.user
+        serializer = UserUpdateSerializer(data=request.data)
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            user.fullname = validated_data.get('fullname', user.fullname)
+            user.phone = validated_data.get('phone', user.phone)
+            user.broker_role = validated_data.get('broker_role', user.broker_role)
+            user.save()
+            response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "message": "Profile updated successfully"
+                }
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserDetailAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": {
+                    "fullname": user.fullname,
+                    "phone": user.phone,
+                    "broker_role": user.broker_role,
+                    "email": user.email
+                }
+            }
+        return Response(response_data, status=status.HTTP_200_OK)
+
 def my_view(request, template_name="index.html"):
     code = request.GET.get('code')
     return TemplateResponse(request, template_name, {'code': code})
