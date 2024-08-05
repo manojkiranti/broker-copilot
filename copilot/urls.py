@@ -15,6 +15,7 @@ import opportunity_app.urls
 import compliance_service.urls
 import utils.urls
 import dashboard_app.urls
+import broker_service.urls
 # def get_redirect_url(request, *args, **kwargs):
 #     return render(request, 'index.html')
 
@@ -42,6 +43,7 @@ urlpatterns = [
     path('api/ai/', include(ai_service.urls)),
     path('api/', include(opportunity_app.urls)),
     path('api/comliance-note/', include(compliance_service.urls)),
+    path('api/broker-note/', include(broker_service.urls)),
     path('api/utils/', include(utils.urls)),
     path('api/dashboard/', include(dashboard_app.urls)),
     # path('', my_view, name='my-view'),

@@ -13,6 +13,7 @@ import urllib.parse
 from urllib.parse import unquote
 # Create your views here.
 
+from .serializers import ForexConvertSerializer
 # Helper function to get encoded headers
 def get_encoded_headers():
     DB_USER = os.getenv('WEBSITE_USER')
@@ -374,7 +375,42 @@ class WebisteCreateContactAPIView(APIView):
     
     
     
+class ForexListAPIView(APIView):
     
+    def get(self, request,  *args, **kwargs):
+        serializer = ForexConvertSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        
+        forex_url = os.getenv('FOREX_URL')
+        api_key = os.getenv('FOREX_API_KEY')
+        
+        from_currency = serializer.validated_data['from_currency']
+        to_currency = serializer.validated_data['to_currency']
+        date = serializer.validated_data['date']
+        amount = serializer.validated_data['amount']
+        
+        if not all([from_currency, to_currency, date, amount]):
+            return Response({'error': 'Missing required query parameters'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        try:
+            utc_date = date.strftime('%Y-%m-%d')
+            url = f"{forex_url}/convert?api_key={api_key}&from={from_currency}&to={to_currency}&date={utc_date}&amount={amount}&format=json"
+            # Make the GET request
+            response = requests.get(url)
+            response.raise_for_status()  # Raises an HTTPError for bad responses
+
+            # Return data as JSON
+            return Response(response.json(), status=status.HTTP_200_OK)
+        except requests.exceptions.HTTPError as e:
+            # Handle HTTP errors (e.g., response 4XX, 5XX)
+            return Response({'error': 'HTTP error occurred', 'details': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except requests.exceptions.RequestException as e:
+            # Handle other requests related errors (e.g., connection issues)
+            return Response({'error': 'Error connecting to the service', 'details': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            # Handle other errors
+            return Response({'error': 'An unexpected error occurred', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     
     

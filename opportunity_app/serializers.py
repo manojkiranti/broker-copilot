@@ -1,5 +1,7 @@
 from rest_framework import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from .models import  ContactsOpportunity, Opportunity
+from accounts.serializers import UserListSerializer
 from django.contrib.auth import get_user_model
 User = get_user_model()
     
@@ -46,10 +48,23 @@ class OpportunitySerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        print(ret)
         if 'json_data' in ret and isinstance(instance.json_data, dict):
             ret['json_data']['id'] = instance.id
         # ret['primary_contact'] = ContactSerializer(instance.primary_contact).data if instance.primary_contact else None
         # ret['secondary_contacts'] = ContactSerializer(instance.secondary_contacts.all(), many=True).data
+        if 'primary_processor' in ret:
+            try:
+                user = User.objects.get(email=ret['primary_processor'])
+                ret['primary_processor'] = UserListSerializer(user).data
+            except ObjectDoesNotExist:
+                ret['primary_processor'] = None
+        if 'secondary_processor' in ret:
+            try:
+                user = User.objects.get(email=ret['secondary_processor'])
+                ret['secondary_processor'] = UserListSerializer(user).data
+            except ObjectDoesNotExist:
+                ret['secondary_processor'] = None
         return ret
 
 
