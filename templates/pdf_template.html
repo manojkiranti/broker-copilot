@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style type="text/css">
+        h1{
+            color: red;
+        }
+    </style>
     <title>Document</title>
 </head>
+
 <body>
-    {{ data }}
+    {% comment %} {{ data }} {% endcomment %}
+    <h1>Welcome {{name}}</h1>
 </body>
 </html>

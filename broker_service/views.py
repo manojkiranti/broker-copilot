@@ -1,10 +1,13 @@
 from django.shortcuts import render
+import base64
+from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
+from utils.renderers import html_to_pdf
 from .models import SystemPrompt
-from .serializers import UserContentSerializer
+from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer
 import requests
 import os
 # Create your views here.
@@ -81,3 +84,40 @@ class GenerateBrokerNoteAPIView(APIView):
                 "status_code": response.status_code,
                 "error": response.text
             }, status=status.HTTP_400_BAD_REQUEST)
+            
+class GeneratePdfView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = GenerateBrokerNotePdfSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            context = {
+                'name': serializer.validated_data.get('name', "")
+            }
+            
+            pdf_content = html_to_pdf("pdf_template.html", context)
+            if pdf_content is None:
+                return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
+            
+            pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
+            pdf_data_url = f"data:application/pdf;base64,{pdf_base64}"
+
+            data = {
+                "pdfUrl": pdf_data_url,
+                "content_type": "application/pdf"
+            }
+            # Create an HttpResponse object with PDF content
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+            return response
+        except Exception as e:
+            return Response(
+                {
+                    "error": {
+                        "statusCode": status.HTTP_400_BAD_REQUEST,
+                        "message": str(e),
+                    }
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
