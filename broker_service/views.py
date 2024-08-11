@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
-from utils.renderers import html_to_pdf
+from django.template.loader import render_to_string
+from utils.renderers import html_to_pdf, html_to_pdf2
 from .models import SystemPrompt
 from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer
 import requests
@@ -96,21 +97,17 @@ class GeneratePdfView(APIView):
             context = {
                 'name': serializer.validated_data.get('name', "")
             }
+            html_content = render_to_string('pdf_template.html', context)
+            # pdf_content = html_to_pdf2("pdf_template.html", context)
+            # if pdf_content is None:
+            #     return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
             
-            pdf_content = html_to_pdf("pdf_template.html", context)
-            if pdf_content is None:
-                return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
-            
-            pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
-            pdf_data_url = f"data:application/pdf;base64,{pdf_base64}"
+             # Generate the PDF
+            pdf = html_to_pdf2(html_content)
 
-            data = {
-                "pdfUrl": pdf_data_url,
-                "content_type": "application/pdf"
-            }
-            # Create an HttpResponse object with PDF content
-            response = HttpResponse(pdf_content, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+            # Return the PDF as an HttpResponse
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="document.pdf"'
             return response
         except Exception as e:
             return Response(

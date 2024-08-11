@@ -1,18 +1,653 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style type="text/css">
-        h1{
-            color: red;
-        }
-    </style>
-    <title>Document</title>
-</head>
+<html>
+  <head>
+    <title>Broker Notes</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        padding: 1rem;
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      h3 {
+        font-size: 24px;
+      }
+      h5 {
+        font-size: 18px;
+      }
+      .heading {
+        text-align: center;
+        position: relative;
+        margin-bottom: 1rem;
+      }
+      .heading h3 {
+        color: #05a2e4;
+        margin: 0px 0px 2px;
+      }
+      .heading p {
+        margin: 0;
+      }
+      .date {
+        color: #05a2e4;
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        font-size: 16px;
+      }
+      .info-heading {
+        background: #05a2e4;
+        padding: 4px 1rem;
+        margin-bottom: 5px;
+      }
+      .info-heading h5 {
+        margin: 0;
+        color: #fff;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .row {
+        display: table;
+        margin-left: -10px;
+        margin-right: -10px;
+        flex-flow: row wrap;
+        min-width: 0;
+        align-items: stretch;
+        width: 100%;
+      }
+      .col {
+        padding: 0 10px;
+        position: relative;
+        display: table-cell;
+      }
+      .col-6 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        width: 25%;
+      }
+      .col-3 {
+        max-width: 12.5%;
+        flex: 0 0 12.5%;
+      }
+      .col-8 {
+        max-width: 33.33%;
+        flex: 0 0 33.33%;
+        width: 33.33%;
+      }
+      .col-12 {
+        max-width: 50%;
+        flex: 0 0 50%;
+        width: 50%;
+      }
+      .col-16 {
+        max-width: 66.66%;
+        flex: 0 0 66.66%;
+        width: 66.66%;
+      }
+      .col-18 {
+        max-width: 75%;
+        flex: 0 0 75%;
+      }
 
-<body>
-    {% comment %} {{ data }} {% endcomment %}
-    <h1>Welcome {{name}}</h1>
-</body>
+      .col-24 {
+        max-width: 75%;
+        width: 75%;
+        flex: 0 0 75%;
+      }
+
+      .text-muted {
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .content-heading {
+        background: #ededed;
+        padding: 1rem;
+        border-radius: 10px;
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      .content-heading h5 {
+        margin: 0;
+      }
+      .heading-bg {
+        background: #ededed;
+      }
+      .td {
+        border: 0.5px solid #d9d9d9;
+        padding: 5px;
+        text-align: center;
+        display: table-cell;
+        vertical-align: middle;
+      }
+      .td h5 {
+        margin: 0;
+      }
+      .row .p-0 {
+        padding: 0 !important;
+      }
+      .row .p-0.td{
+        padding: 5px!important;
+      }
+      .row.no-margin {
+        margin: 0 !important;
+      }
+      .mb-1 {
+        margin-bottom: 10px;
+      }
+      .card {
+        border: 1px solid #e1e1e1;
+        background: #ffffff;
+        border-radius: 8px;
+      }
+      .content-output-text {
+        font-size: 14px;
+        line-height: 1.5;
+        min-height: 300px;
+        align-content: center;
+        padding: 1rem;
+      }
+
+      .d-table{
+        display: table;
+        width: 100%;
+      }
+      .table-cell{
+        display: table-cell;
+        vertical-align: middle;
+        position: relative;
+        padding: 0 10px;
+      }
+      .table-6{
+        width: 25%;
+      }
+      .table-18{
+        width: 75%;
+      }
+      .cell-div{
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center; position: relative; margin-bottom: 1rem;">
+        <h3 style="color: #05a2e4; margin-bottom: 0px;">BROKER NOTES</h3>
+        <p style="margin-top: 0;">Australian Mortgages for Expats & Overseas Residents</p>
+        <div style="color: #05a2e4; position: absolute; right: 0px; top: 0px; font-size: 16px;">24/06/2024</div>
+      </div>
+    <div class="info-box">
+      <div class="info-heading">
+        <h5>Processor Contact Details</h5>
+      </div>
+      <div class="row">
+        <div class="col col-6"></div>
+        <div class="col col-6">
+          <b>Name</b>
+        </div>
+        <div class="col col-6">
+          <b>Email</b>
+        </div>
+        <div class="col col-6">
+          <b>Phone</b>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-6">
+          <div class="text-muted">Processor</div>
+        </div>
+        <div class="col col-6">
+          <div class="text-muted">Susanna A</div>
+        </div>
+        <div class="col col-6">
+          <div class="text-muted">susanna@odinmortgage.com</div>
+        </div>
+        <div class="col col-6">
+          <div class="text-muted">+612 7226 3672</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-heading">
+        <h5>Applicant</h5>
+      </div>
+      <div class="row">
+        <div class="col col-3"></div>
+        <div class="col col-3">
+          <b>First Name</b>
+        </div>
+        <div class="col col-3">
+          <b>Last Name</b>
+        </div>
+        <div class="col col-3">
+          <b>Occupation</b>
+        </div>
+        <div class="col col-3">
+          <b>Employer</b>
+        </div>
+        <div class="col col-3">
+          <b>Citizenship</b>
+        </div>
+        <div class="col col-3">
+          <b>Residence</b>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-3"><div class="text-muted">Applicants 1</div></div>
+        <div class="col col-3">
+          <div class="text-muted">Applicants 1</div>
+        </div>
+        <div class="col col-3">
+          <div class="text-muted"></div>
+        </div>
+        <div class="col col-3">
+          <div class="text-muted"></div>
+        </div>
+        <div class="col col-3">
+          <div class="text-muted"></div>
+        </div>
+        <div class="col col-3">
+          <div class="text-muted">Australian Citizen</div>
+        </div>
+        <div class="col col-3">
+          <div class="text-muted">DE</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Loan Details</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="heading-bg">
+          <div class="row no-margin">
+            <div class="col col-8 p-0 td">
+              <h5>APP1</h5>
+            </div>
+            <div class="col col-16 p-0 td">
+              <h5>Purchase</h5>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Finance Due:</b>
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                3 May 2024 
+              </div>
+              <div class="col col-8 p-0 td">
+                
+              </div>
+              <div class="col col-8 p-0 td">
+                21/06/2024
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            Lender:
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                BOQ
+              </div>
+              <div class="col col-8 p-0 td">
+                <b>Product:</b>
+              </div>
+              <div class="col col-8 p-0 td">
+                SVR Variable Package
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">            
+              <b>Loan Term (Years):</b>        
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                30
+              </div>
+              <div class="col col-8 p-0 td">
+                 <b>Offset:</b>
+              </div>
+              <div class="col col-8 p-0 td">
+                yes
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Interest Rate:</b>
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                0
+              </div>
+              <div class="col col-8 p-0 td">
+                <b>Pricing:</b>
+              </div>
+              <div class="col col-8 p-0 td">
+                Not yet requested
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Loan Purpose:</b>
+          </div>
+          <div class="col col-16 p-0 td">
+             Investment Property Purchase
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Address:</b>
+          </div>
+          <div class="col col-16 p-0 td">
+             TBA
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Property Value:</b>
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                1000000
+              </div>
+              <div class="col col-8 p-0 td">
+                <b>Valuation:</b>
+              </div>
+              <div class="col col-8 p-0 td">
+                N/A, AIP
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row no-margin">
+          <div class="col col-8 p-0 td">
+            <b>Loan Amount:</b>
+          </div>
+          <div class="col col-16 p-0">
+            <div class="row no-margin">
+              <div class="col col-8 p-0 td">
+                800000
+              </div>
+              <div class="col col-8 p-0 td">
+                <b>LVR:</b>
+              </div>
+              <div class="col col-8 p-0 td">
+                80
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-heading">
+      <h5>Broker Notes</h5>
+    </div>
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Overview / Loan Purpose</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Applicant Overview</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Living Conditions</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Employment / Income</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Commitments</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Funds to Complete</h5>
+        </div>
+      </div>
+      <div class="col col-18">        
+          <div class="row">
+              <div class="col col-12">      
+                     
+                      <div class="row">        
+                        <div class="col col-24 ">
+                          <div class="heading-bg td" style="display: block;">
+                           <h5>Funds to Complete</h5>
+                          </div>
+                          <div class="row no-margin">
+                             <div class="col col-8 p-0 td">
+                                Purchase Price:
+                             </div>
+                             <div class="col col-16 p-0 td">
+                               1000000
+                             </div>
+                          </div>
+
+                          <div class="row no-margin">
+                            <div class="col col-8 p-0 td">
+                              Less: Loan Amount:
+                            </div>
+                            <div class="col col-16 p-0 td">
+                              800000
+                            </div>
+                         </div>
+
+                         <div class="row no-margin">
+                          <div class="col col-8 p-0 td">
+                            Less: Cash Out Amount:
+                          </div>
+                          <div class="col col-16 p-0 td">
+                            (1)
+                          </div>
+                        </div>
+
+                        <div class="row no-margin">
+                          <div class="col col-8 p-0 td">
+                             <b>Add: Stamp, Duty, mics:</b>
+                          </div>
+                          <div class="col col-16 p-0 td">
+                            (50000)
+                          </div>
+                        </div>
+
+                        <div class="row no-margin">
+                          <div class="col col-8 p-0 td">
+                             <b>Funds Required:</b>
+                          </div>
+                          <div class="col col-16 p-0 td">
+                            1000000
+                          </div>
+                        </div>
+
+                        </div>  
+                        
+                        
+                        
+                      </div>     
+            
+              </div>
+              <div class="col col-12">
+                <div class="row">
+                  <div class="col col-24 ">
+                    <div class="heading-bg td" style="display: block;">
+                     <h5>Funds Available</h5>
+                    </div>
+                    <div class="row no-margin">
+                       <div class="col col-8 p-0 td">
+                          <b>BANK #001:</b>
+                       </div>
+                       <div class="col col-16 p-0 td">
+                          0
+                       </div>
+                    </div>
+
+                    <div class="row no-margin">
+                      <div class="col col-8 p-0 td">
+                         <b>BANK #002:</b>
+                      </div>
+                      <div class="col col-16 p-0 td">
+                        0
+                      </div>
+                   </div>
+
+                   <div class="row no-margin">
+                    <div class="col col-8 p-0 td">
+                      <b>BANK #003:</b>
+                    </div>
+                    <div class="col col-16 p-0 td">
+                      0
+                    </div>
+                  </div>
+
+                  <div class="row no-margin">
+                    <div class="col col-8 p-0 td">
+                       <b>SHARES #001:</b>
+                    </div>
+                    <div class="col col-16 p-0 td">
+                      0
+                    </div>
+                  </div>
+
+                  <div class="row no-margin">
+                    <div class="col col-8 p-0 td">
+                       <b>Cash, gift, parents:</b>
+                    </div>
+                    <div class="col col-16 p-0 td">
+                      0
+                    </div>
+                  </div>
+
+                  <div class="row no-margin">
+                    <div class="col col-8 p-0 td">
+                      Total:
+                    </div>
+                    <div class="col col-16 p-0 td">
+                      0
+                    </div>
+                  </div>
+
+                  </div>   
+                </div>
+              </div>
+          </div>         
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Other</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-1">
+      <div class="col col-6">
+        <div class="content-heading">
+          <h5>Mitigants</h5>
+        </div>
+      </div>
+      <div class="col col-18">
+        <div class="card">
+          <div class="content-output-text"></div>
+        </div>
+      </div>
+    </div>
+
+  </body>
 </html>

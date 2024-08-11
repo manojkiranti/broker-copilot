@@ -231,24 +231,26 @@ SWAGGER_SETTINGS = {
         }
     },
 }
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
+PDFKIT_CONFIG = {
+    'wkhtmltopdf': '/usr/bin/wkhtmltopdf',  # Update with the actual path
 }
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kathmandu'
