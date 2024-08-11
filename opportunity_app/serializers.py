@@ -40,6 +40,7 @@ class OpportunitySerializer(serializers.Serializer):
     start_date = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
+    stage = serializers.SlugRelatedField(read_only=True, slug_field='name')
 
     def validate_website_tracking_id(self, value):
         if value == '':

@@ -408,3 +408,52 @@ class ContactDetailUpdateAPIView(APIView):
             "statusCode": status.HTTP_204_NO_CONTENT,
             "message": "Contact has been deleted."
         })
+
+class ContactCheckAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        
+        # Check if the email is provided
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        contact = ContactsOpportunity.objects.filter(email=email).first()
+        
+        if contact:
+            # If contact exists, return the data
+            serializer = ContactSerializer(contact)
+            return Response({
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data
+            })
+        else:
+            # If contact doesn't exist, create a new one
+            serializer = ContactSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                try:
+                    contact_data = {
+                        'created_by': request.user,
+                        'email': email,
+                        'name': serializer.validated_data.get('name'),
+                        'phone': serializer.validated_data.get('phone'),
+                        'residency': serializer.validated_data.get('residency')
+                    }
+                    contact_opportunity = ContactsOpportunity.objects.create(**contact_data)
+                    # Create OpportunityServiceHistory object
+                    serializer = ContactSerializer(contact_opportunity)
+
+                    # Prepare response data including ContactInfo details if created
+                    response_data = {
+                        "success": True,
+                        "statusCode": status.HTTP_201_CREATED,
+                        "data": serializer.data
+                    }
+
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    print(e)
+                    return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
