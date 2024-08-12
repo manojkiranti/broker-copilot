@@ -62,6 +62,7 @@ jobs:
       - name: Clean up previous deployments
         run: |
           rm -rf /home/site/wwwroot/*
+          rm -rf /home/site/wwwroot/.[!.]*
 
       
       - name: 'Deploy to Azure Web App'
