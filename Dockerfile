@@ -14,15 +14,18 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Copy the .env file
+COPY ./copilot/.env /app/copilot/.env
+
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set environment variables
-ENV DJANGO_SETTINGS_MODULE=myproject.settings.production
+ENV DJANGO_SETTINGS_MODULE=copilot.settings
 ENV PYTHONUNBUFFERED=1
 
 # Expose port 8000 for the app to run on
 EXPOSE 8000
 
 # Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "myproject.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "copilot.wsgi:application"]
