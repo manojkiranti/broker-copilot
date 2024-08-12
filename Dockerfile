@@ -26,7 +26,7 @@ ENV DJANGO_SETTINGS_MODULE=copilot.settings
 ENV PYTHONUNBUFFERED=1
 
 
-# Configure SSH
+# Ensure /run/sshd directory exists and configure SSH to use port 2222
 RUN mkdir -p /run/sshd && \
     sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
     echo "ListenAddress 0.0.0.0" >> /etc/ssh/sshd_config && \
@@ -38,6 +38,9 @@ RUN mkdir -p /run/sshd && \
     echo "MACs hmac-sha1,hmac-sha1-96" >> /etc/ssh/sshd_config && \
     echo "StrictModes yes" >> /etc/ssh/sshd_config && \
     echo "root:Docker!" | chpasswd  # Set a root password
+
+# Expose port 8000 for the application and 2222 for SSH
+EXPOSE 8000 2222
 
 
 # Expose port 8000 for the application and 2222 for SSH
