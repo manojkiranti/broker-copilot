@@ -99,6 +99,7 @@ class GeneratePdfView(APIView):
                 'name': serializer.validated_data.get('name', "")
             }
             html_content = render_to_string('pdf_template.html', context)
+            print('html')
             # pdf_content = html_to_pdf2("pdf_template.html", context)
             # if pdf_content is None:
             #     return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
