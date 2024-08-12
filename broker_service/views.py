@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
-from utils.renderers import html_to_pdf, html_to_pdf2
+# from utils.renderers import html_to_pdf, html_to_pdf2
 from weasyprint import HTML
 from .models import SystemPrompt
 from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer

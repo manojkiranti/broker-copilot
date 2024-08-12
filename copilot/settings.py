@@ -231,9 +231,9 @@ SWAGGER_SETTINGS = {
         }
     },
 }
-PDFKIT_CONFIG = {
-    'wkhtmltopdf': '/usr/bin/wkhtmltopdf',  # Update with the actual path
-}
+# PDFKIT_CONFIG = {
+#     'wkhtmltopdf': '/usr/bin/wkhtmltopdf',  # Update with the actual path
+# }
 # LOGGING = {
 #     'version': 1,
 #     'disable_existing_loggers': False,
