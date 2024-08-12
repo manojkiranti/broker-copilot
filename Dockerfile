@@ -29,7 +29,7 @@ RUN mkdir -p /run/sshd && \
     echo "root:Docker!" | chpasswd  # Set a root password
 
 # Expose port 8000 for the application and 2222 for SSH
-EXPOSE 8000 22
+EXPOSE 8000 2222
 
 # Copy the entrypoint script and set execute permissions
 COPY entrypoint.sh /entrypoint.sh
