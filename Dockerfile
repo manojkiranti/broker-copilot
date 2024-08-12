@@ -17,6 +17,10 @@ COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Set environment variables
+ENV DJANGO_SETTINGS_MODULE=myproject.settings.production
+ENV PYTHONUNBUFFERED=1
+
 # Expose port 8000 for the app to run on
 EXPOSE 8000
 

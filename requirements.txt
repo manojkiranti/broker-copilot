@@ -82,4 +82,5 @@ webencodings==0.5.1
 xhtml2pdf==0.2.16
 zopfli==0.2.3
 pdfkit==1.0.0
+gunicorn
 # django-cron==0.6.0
