@@ -1,8 +1,9 @@
 # Use an official Python runtime as a parent image
 FROM python:3.10-slim
 
-# Install wkhtmltopdf and dependencies
+# Install OpenSSH server, wkhtmltopdf, and other dependencies
 RUN apt-get update && apt-get install -y \
+    openssh-server \
     wkhtmltopdf \
     libxrender1 \
     libfontconfig1 \
@@ -14,9 +15,6 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Copy the .env file
-# COPY ./copilot/.env /app/copilot/.env
-
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -24,8 +22,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV DJANGO_SETTINGS_MODULE=copilot.settings
 ENV PYTHONUNBUFFERED=1
 
-# Expose port 8000 for the app to run on
-EXPOSE 8000
+# Create SSH directory and set up SSH service
+RUN mkdir -p /run/sshd
 
-# Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "copilot.wsgi:application"]
+# Expose port 8000 for the application and 2222 for SSH
+EXPOSE 8000 2222
+
+# Copy the entrypoint script and set execute permissions
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Use the entrypoint script to run the application and start SSH
+ENTRYPOINT ["/entrypoint.sh"]
