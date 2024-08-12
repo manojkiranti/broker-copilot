@@ -40,5 +40,5 @@ jobs:
         with:
           app-name: 'brokercopilot-backend-service'
           slot-name: 'Production'
-          images: '${{ secrets.DOCKER_USERNAME }}/brokercopilot-backend-service:latest'
+          images: ${{ secrets.DOCKER_USERNAME }}/brokercopilot-backend-service:latest
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D191192D873D4847A38F0876839098FB }}
