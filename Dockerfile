@@ -15,7 +15,7 @@ WORKDIR /app
 COPY . /app
 
 # Copy the .env file
-COPY ./copilot/.env /app/copilot/.env
+# COPY ./copilot/.env /app/copilot/.env
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
