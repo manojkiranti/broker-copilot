@@ -28,7 +28,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Configure SSH
 RUN mkdir -p /run/sshd && \
-    echo "Port 2222" >> /etc/ssh/sshd_config && \
+    sed -i 's/#Port 22/Port 2222/' /etc/ssh/sshd_config && \
     echo "ListenAddress 0.0.0.0" >> /etc/ssh/sshd_config && \
     echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
     echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
