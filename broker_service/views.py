@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
-# from utils.renderers import html_to_pdf, html_to_pdf2
-from weasyprint import HTML
+from utils.renderers import html_to_pdf, html_to_pdf2
+
 from .models import SystemPrompt
 from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer
 import requests
@@ -98,20 +98,14 @@ class GeneratePdfView(APIView):
             context = {
                 'name': serializer.validated_data.get('name', "")
             }
-            # html_content = render_to_string('pdf_template.html', context)
+            html_content = render_to_string('pdf_template.html', context)
             # pdf_content = html_to_pdf2("pdf_template.html", context)
             # if pdf_content is None:
             #     return Response("Invalid PDF", status=status.HTTP_400_BAD_REQUEST)
             
              # Generate the PDF
-            # pdf = html_to_pdf2(html_content)
-            
-            html_string = render_to_string('pdf_template.html', context)
+            pdf = html_to_pdf2(html_content)
 
-            # Convert HTML to PDF
-            html = HTML(string=html_string)
-            pdf = html.write_pdf()
-        
             # Return the PDF as an HttpResponse
             response = HttpResponse(pdf, content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="document.pdf"'
