@@ -22,8 +22,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV DJANGO_SETTINGS_MODULE=copilot.settings
 ENV PYTHONUNBUFFERED=1
 
-# Create SSH directory and set up SSH service
-RUN mkdir -p /run/sshd
+# Create SSH directory, set up SSH service, and configure SSH
+RUN mkdir -p /run/sshd && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config && \
+    echo "root:Docker!" | chpasswd  # Set a root password
 
 # Expose port 8000 for the application and 2222 for SSH
 EXPOSE 8000 22
