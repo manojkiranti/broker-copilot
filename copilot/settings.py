@@ -4,7 +4,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Get the path to the .env file
-env_path = Path('/app/copilot/.env')
 
 # Load the .env file
 load_dotenv()
