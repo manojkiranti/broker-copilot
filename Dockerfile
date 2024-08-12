@@ -41,7 +41,7 @@ RUN mkdir -p /run/sshd && \
 
 
 # Expose port 8000 for the application and 2222 for SSH
-EXPOSE 8000 2222
+EXPOSE 8000 22
 
 # Copy the entrypoint script and set execute permissions
 COPY entrypoint.sh /entrypoint.sh
