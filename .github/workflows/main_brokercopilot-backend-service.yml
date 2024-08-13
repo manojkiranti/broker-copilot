@@ -59,11 +59,8 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: Clean up previous deployments
-        run: |
-          rm -rf /home/site/wwwroot/*
-          rm -rf /home/site/wwwroot/.[!.]*
-
+      - name: Ensure the startup script is executable
+        run: chmod +x startup.sh
       
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
@@ -72,3 +69,6 @@ jobs:
           app-name: 'brokercopilot-backend-service'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D191192D873D4847A38F0876839098FB }}
+        env:
+          SCM_DO_BUILD_DURING_DEPLOYMENT: '1'
+          STARTUP_FILE: 'startup.sh'
