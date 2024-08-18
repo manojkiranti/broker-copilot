@@ -39,7 +39,7 @@ class LoanDetailSerializer(serializers.Serializer):
     loan_term = serializers.IntegerField(max_value=20, allow_null=True, required=False)
     property_value = serializers.IntegerField(allow_null=True, required=False)
     interest_rate = serializers.IntegerField(max_value=12, allow_null=True, required=False)
-    loan_purpose = serializers.CharField(max_length=100, allow_null=True, required=False)
+    loan_purpose = serializers.CharField(max_length=100, allow_null=True,allow_blank=True, required=False)
     loan_amount = serializers.IntegerField(allow_null=True, required=False)
     product = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
     lvr = serializers.IntegerField(allow_null=True, required=False)
@@ -54,7 +54,7 @@ class FundsDetailSerializer(serializers.Serializer):
     stamp_duty = serializers.IntegerField(max_value=10000, allow_null=True, required=False)
     
 class GenerateBrokerNotePdfSerializer(serializers.Serializer):
-    date = serializers.CharField(max_length=10, allow_null=True, required=False)
+    date = serializers.CharField(max_length=10, allow_null=True, allow_blank=True, required=False)
     processor = ContactSerializer(required=False)
     primary_contact = NoteContactDataSerializer(required=False)
     co_applicant_status = serializers.BooleanField()
