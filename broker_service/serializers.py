@@ -19,13 +19,13 @@ class UserContentSerializer(serializers.Serializer):
 
 class ContactSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
-    email = serializers.EmailField(allow_blank=True, required=False)
+    email = serializers.EmailField(allow_blank=True, allow_null=True, required=False)
     phone = serializers.CharField(max_length=20, allow_blank=True, required=False)
 
 class NoteContactDataSerializer(ContactDataSerializer):
     occupation = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
     employer = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
-    
+    email = serializers.EmailField(allow_blank=True, allow_null=True, required=False) 
     def to_representation(self, instance):
         # Exclude country_code from the serialized output
         ret = super().to_representation(instance)
