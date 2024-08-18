@@ -33,8 +33,8 @@ class NoteContactDataSerializer(ContactDataSerializer):
         return ret
 
 class LoanDetailSerializer(serializers.Serializer):
-    finance_due_date = serializers.CharField(max_length=10, allow_null=True, required=False)
-    settlement_date = serializers.CharField(max_length=10, allow_null=True, required=False)
+    finance_due_date = serializers.CharField(max_length=20, allow_null=True, allow_blank=True, required=False)
+    settlement_date = serializers.CharField(max_length=20, allow_null=True, allow_blank=True, required=False)
     lender = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
     loan_term = serializers.IntegerField(max_value=20, allow_null=True, required=False)
     property_value = serializers.IntegerField(allow_null=True, required=False)
