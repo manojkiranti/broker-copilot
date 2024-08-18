@@ -44,7 +44,6 @@ class OpportunityListCreateAPIView(APIView):
             response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
-                'check':"check3",
                 "data": serializer.data,
             }
             return Response(response_data, status=status.HTTP_200_OK)
