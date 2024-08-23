@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from opportunity_app.models import LenderChoices
+from opportunity_app.models import LenderChoices, LoanPurposeChoices
 from opportunity_app.serializers import OpportunityNameSerializer
 from .models import Note
 
@@ -19,6 +19,11 @@ class UserContentSerializer(serializers.Serializer):
         required=True
     )
 
+class ComplianceOpportunitySerializer(serializers.Serializer):
+    lvr = serializers.CharField(max_length=10, required=False, allow_null=True, allow_blank=True)
+    purpose = serializers.ChoiceField(choices=LoanPurposeChoices.choices, required=False, allow_blank=True, allow_null=True)
+    
+    
 class ComplianceNoteSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     opportunity_id = serializers.IntegerField()
@@ -51,6 +56,8 @@ class ComplianceNoteSerializer(serializers.Serializer):
     loan_structure_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     loan_prioritised_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     lender_loan_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
+    
+    opportunity_data = ComplianceOpportunitySerializer(required=False)
     
     updated_at = serializers.DateTimeField(read_only=True)
     

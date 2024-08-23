@@ -29,7 +29,19 @@ class LenderChoices(models.TextChoices):
     LA_TROBE = 'la_trobe', 'LaTrobe'
     MEZY = 'mezy', 'MEZY'
     MA_MONEY = 'ma_money', 'MA Money'
-
+    
+class LoanPurposeChoices(models.TextChoices):
+    INVESTMENT_PROPERTY = 'investment_property', 'Investment Property'
+    INVESTMENT_VACANT_LAND = 'investment_vacant_land', 'Investment Vacant Land'
+    INVESTMENT_HOUSE_AND_LAND_CONSTRUCTION = 'investment_house_and_land_construction', 'Investment House & Land Construction'
+    OWNER_OCCUPIER_PROPERTY_PURCHASE = 'owner_occupier_property_purchase', 'Owner-occupier Property Purchase'
+    OWNER_OCCUPIER_PROPERTY_PRE_APPROVAL = 'owner_occupier_property_pre_approval', 'Owner-occupier Property Pre-approval'
+    OWNER_OCCUPIER_PROPERTY_REFINANCE = 'owner_occupier_property_refinance', 'Owner-occupier Property Refinance'
+    OWNER_OCCUPIER_PROPERTY_REFINANCE_EQUITY_RELEASE = 'owner_occupier_property_refinance_equity_release', 'Owner-occupier Property Refinance + Equity Release'
+    OWNER_OCCUPIER_PROPERTY_EQUITY_CASH_OUT = 'owner_occupier_property_equity_cash_out', 'Owner-occupier Property Equity Cash-out'
+    OWNER_OCCUPIER_VACANT_LAND = 'owner_occupier_vacant_land', 'Owner-occupier Vacant Land'
+    OWNER_OCCUPIER_HOUSE_AND_LAND_CONSTRUCTION = 'owner_occupier_house_and_land_construction', 'Owner-Occupier House & Land Construction'
+        
 class ContactsOpportunity(models.Model):
     class OpportunityStatus(models.TextChoices):
         ACTIVE  = 'active', 'Active',

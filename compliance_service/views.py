@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.views  import APIView
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
-from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer
+from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer, ComplianceOpportunitySerializer
 from .data.content import SYSTEM_CONTENT
 from .models import SystemPrompt, Note
 from opportunity_app.models import Opportunity
@@ -17,8 +17,11 @@ class ComplianceNoteListCreateAPIView(APIView):
     
     def get(self, request, *args, **kwargs):
         try:
-            notes = Note.objects.filter(created_by=request.user,status='active').order_by('-updated_at')
-            serializer = ComplianceNoteSerializer(notes, many=True)
+            notes_query = Note.objects.filter(created_by=request.user, status='active').order_by('-updated_at')
+            # Check for 'latest' query parameter
+            if request.query_params.get('latest') == 'true':
+                notes_query = notes_query[:5]  # Limit to latest 5 notes
+            serializer = ComplianceNoteSerializer(notes_query, many=True)
             response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
@@ -32,16 +35,27 @@ class ComplianceNoteListCreateAPIView(APIView):
         serializer = ComplianceNoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
+        
         try:
             with transaction.atomic():
                 opportunity_id = serializer.validated_data['opportunity_id']
-                if not Opportunity.objects.filter(id=opportunity_id).exists():
+                opportunity = Opportunity.objects.filter(id=opportunity_id).first()
+                if not opportunity:
                     return Response({
                         "error": {
                             "statusCode": status.HTTP_400_BAD_REQUEST,
                             "message": "A deal with the given id does not exist",
                         }
                     }, status=status.HTTP_400_BAD_REQUEST)
+                    
+                opp_data_serializer = ComplianceOpportunitySerializer(data=serializer.validated_data.get('opportunity_data', {}))
+
+                if opp_data_serializer.is_valid():
+                    updated_json_data = opportunity.json_data
+                    updated_json_data.update(opp_data_serializer.validated_data)
+                    opportunity.json_data = updated_json_data
+                    opportunity.save()
+                
                 note_data = {
                     'document_identification_method': serializer.validated_data.get('document_identification_method'),
                     'client_interview_method': serializer.validated_data.get('client_interview_method'),
