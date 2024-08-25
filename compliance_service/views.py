@@ -167,7 +167,7 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
                     opportunity.json_data = updated_json_data
                     opportunity.save()
              
-                note.updated_by = request.user.id
+                note.updated_by = request.user
                 note.document_identification_method = serializer.validated_data.get('document_identification_method')
                 note.client_interview_method = serializer.validated_data.get('client_interview_method')
                 note.credit_guide_provided = serializer.validated_data.get('credit_guide_provided')
@@ -189,7 +189,7 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
                 note.loan_structure_note = serializer.validated_data.get('loan_structure_note')
                 note.loan_prioritised_note = serializer.validated_data.get('loan_prioritised_note')
                 note.lender_loan_note = serializer.validated_data.get('lender_loan_note')
-                note.opportunity = opportunity_id
+                note.opportunity = opportunity
                 note.save()
                 
                 serializer_data = ComplianceNoteSerializer(note)

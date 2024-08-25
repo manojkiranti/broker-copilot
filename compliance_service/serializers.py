@@ -22,6 +22,8 @@ class UserContentSerializer(serializers.Serializer):
 class ComplianceOpportunitySerializer(serializers.Serializer):
     lvr = serializers.CharField(max_length=10, required=False, allow_null=True, allow_blank=True)
     purpose = serializers.ChoiceField(choices=LoanPurposeChoices.choices, required=False, allow_blank=True, allow_null=True)
+    offset = serializers.CharField(max_length=10, required=False, allow_null=True, allow_blank=True)
+    rateType_1a = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     
     
 class ComplianceNoteSerializer(serializers.Serializer):
