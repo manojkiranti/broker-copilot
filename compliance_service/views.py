@@ -1,4 +1,6 @@
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.views  import APIView
 from django.db import transaction
@@ -20,7 +22,7 @@ class ComplianceNoteListCreateAPIView(APIView):
             notes_query = Note.objects.filter(created_by=request.user, status='active').order_by('-updated_at')
             # Check for 'latest' query parameter
             if request.query_params.get('latest') == 'true':
-                notes_query = notes_query[:5]  # Limit to latest 5 notes
+                notes_query = notes_query[:3]  # Limit to latest 3 notes
             serializer = ComplianceNoteSerializer(notes_query, many=True)
             response_data = {
                 "success": True,
@@ -95,7 +97,113 @@ class ComplianceNoteListCreateAPIView(APIView):
         except Exception as e:
             # logger.error(f"Error creating opportunity: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
+     permission_classes = [IsAuthenticated]
+     
+     def get(self, request, pk, *args, **kwargs):
+         try:
+             note = Note.objects.get(pk=pk, status='active')
+             serializer = ComplianceNoteSerializer(note)
+             response_data = {
+                 "success": True,
+                 "statusCode": status.HTTP_200_OK,
+                 "data": serializer.data,
+             }
+             return Response(response_data, status=status.HTTP_200_OK)
+         except Note.DoesNotExist:
+            return Response({"error": "Compliance Note with the given id not found."}, status=status.HTTP_404_NOT_FOUND)
+         except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+     def delete(self, request, pk, *args, **kwargs):
+        note = Note.objects.get( pk=pk)
+        if not note:
+            return Response({"error": "Compliance note not found."}, status=status.HTTP_404_NOT_FOUND)
         
+        if request.user != note.created_by:
+            return Response({"error": "You don't have permission to delete this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Set status to 'inactive' to soft delete the service
+            note.status = 'inactive'
+            note.save()
+        except (ValidationError, IntegrityError) as e:
+            # Handle specific database errors
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "message": "Successfully deleted compliance note"
+        }, status=status.HTTP_200_OK)
+    
+     def patch(self, request, pk, *args, **kwargs):
+        note = Note.objects.get( pk=pk)
+        if not note:
+            return Response({"error": "Compliance note not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ComplianceNoteSerializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        if request.user != note.created_by:
+            return Response({"error": "You don't have permission to delete this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            with transaction.atomic():
+                opportunity_id = serializer.validated_data['opportunity_id']
+                opportunity = Opportunity.objects.filter(id=opportunity_id).first()
+                if not opportunity:
+                    return Response({
+                        "error": {
+                            "statusCode": status.HTTP_400_BAD_REQUEST,
+                            "message": "A deal with the given id does not exist",
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+                opp_data_serializer = ComplianceOpportunitySerializer(data=serializer.validated_data.get('opportunity_data', {}))
+                if opp_data_serializer.is_valid():
+                    updated_json_data = opportunity.json_data
+                    updated_json_data.update(opp_data_serializer.validated_data)
+                    opportunity.json_data = updated_json_data
+                    opportunity.save()
+             
+                note.updated_by = request.user.id
+                note.document_identification_method = serializer.validated_data.get('document_identification_method')
+                note.client_interview_method = serializer.validated_data.get('client_interview_method')
+                note.credit_guide_provided = serializer.validated_data.get('credit_guide_provided')
+                note.estimated_settlement_date = serializer.validated_data.get('estimated_settlement_date')
+                note.facility_amount = serializer.validated_data.get('facility_amount')
+                note.rate_type = serializer.validated_data.get('rate_type')
+                note.repayment_type = serializer.validated_data.get('repayment_type')
+                note.repayment_frequency = serializer.validated_data.get('repayment_frequency')
+                note.offset = serializer.validated_data.get('offset')
+                note.cash_out_involved = serializer.validated_data.get('cash_out_involved')
+                note.loan_structure = serializer.validated_data.get('loan_structure')
+                note.loan_scenario_lender_1 = serializer.validated_data.get('loan_scenario_lender_1')
+                note.loan_scenario_lender_2 = serializer.validated_data.get('loan_scenario_lender_2')
+                note.loan_scenario_lender_3 = serializer.validated_data.get('loan_scenario_lender_3')
+                note.loan_objective_note = serializer.validated_data.get('loan_objective_note')
+                note.loan_requirement_note = serializer.validated_data.get('loan_requirement_note')
+                note.loan_circumstances_note = serializer.validated_data.get('loan_circumstances_note')
+                note.loan_financial_awareness_note = serializer.validated_data.get('loan_financial_awareness_note')
+                note.loan_structure_note = serializer.validated_data.get('loan_structure_note')
+                note.loan_prioritised_note = serializer.validated_data.get('loan_prioritised_note')
+                note.lender_loan_note = serializer.validated_data.get('lender_loan_note')
+                note.opportunity = opportunity_id
+                note.save()
+                
+                serializer_data = ComplianceNoteSerializer(note)
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": serializer_data.data,
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
+        except ValidationError as e:  # Specific exceptions can be more useful
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class GenerateComplianceNoteAPIView(APIView):
      permission_classes = [IsAuthenticated]

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from opportunity_app.models import LenderChoices, LoanPurposeChoices
-from opportunity_app.serializers import OpportunityNameSerializer
+from opportunity_app.serializers import OpportunityNameSerializer, OpportunitySerializer
 from .models import Note
 
 class UserContentSerializer(serializers.Serializer):
@@ -27,7 +27,7 @@ class ComplianceOpportunitySerializer(serializers.Serializer):
 class ComplianceNoteSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     opportunity_id = serializers.IntegerField()
-    opportunity = OpportunityNameSerializer(read_only=True)
+    opportunity = OpportunitySerializer(read_only=True)
     
     document_identification_method = serializers.ChoiceField(choices=Note.DocumentIdentificationChoices, allow_null=True, required=False)
     client_interview_method = serializers.ChoiceField(choices=Note.ClientInterviewChoices.choices, allow_null=True, required=False)
