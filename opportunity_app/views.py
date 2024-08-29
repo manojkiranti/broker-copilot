@@ -38,6 +38,9 @@ class OpportunityListCreateAPIView(APIView):
                 )
             else:
                 opportunity_services = base_query
+                
+            opportunity_services = opportunity_services.order_by('-start_date')
+            
             serializer = OpportunitySerializer(
                 opportunity_services, many=True)
            
