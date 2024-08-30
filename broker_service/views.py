@@ -1,5 +1,7 @@
 from django.shortcuts import render
 import base64
+from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,9 +9,11 @@ from rest_framework.views  import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from utils.renderers import html_to_pdf
+from django.db import transaction
 from utils.common_utils import split_name
-from .models import SystemPrompt
-from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer
+from .models import SystemPrompt, Note, NotePdf
+from opportunity_app.models import Opportunity
+from .serializers import UserContentSerializer, GenerateBrokerNotePdfSerializer, BrokerNoteSerializer
 import requests
 import os
 # Create your views here.
@@ -139,7 +143,7 @@ class GeneratePdfView(APIView):
                 'loan_detail_address': '',
             }
             
-            loan_detail_data = serializer.validated_data.get('loan_detail', default_loan_detail)
+            loan_detail_data = serializer.validated_data.get('loan_details', default_loan_detail)
 
             # Use update method to ensure all keys exist, filled with data if present or empty strings if not
             default_loan_detail.update(loan_detail_data)
@@ -215,3 +219,190 @@ class GeneratePdfView(APIView):
                     }
                 }, status=status.HTTP_400_BAD_REQUEST
             )
+            
+class BrokerNoteListCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            notes_query =  Note.objects.filter(created_by=request.user, status='active').order_by('-updated_at')
+            
+            if request.query_params.get('latest') == 'true':
+                notes_query = notes_query[:3]  # Limit to latest 3 notes
+            serializer = BrokerNoteSerializer(notes_query, many=True)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+    
+    def post(self, request, *args, **kwargs):
+        serializer = BrokerNoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            with transaction.atomic():
+                opportunity_id = serializer.validated_data['opportunity_id']
+                opportunity = Opportunity.objects.filter(id=opportunity_id).first()
+                if not opportunity:
+                    return Response({
+                        "error": {
+                            "statusCode": status.HTTP_400_BAD_REQUEST,
+                            "message": "A deal with the given id does not exist",
+                        }
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                loan_details = serializer.validated_data.get('loan_details', {})
+                updated_json_data = opportunity.json_data
+                opportunity_payload = {
+                    'lender': loan_details.get('lender'),
+                    'loanTerm': loan_details.get('loan_term'),
+                    'propertyValue':loan_details.get('property_value'),
+                    'interestRate': loan_details.get('interest_rate'),
+                    "purpose": loan_details.get('loan_purpose'),
+                    'loanAmount' : loan_details.get('loan_amount'),
+                    'product': loan_details.get('product'),
+                    'lvr': loan_details.get('lvr'),
+                    'valuation': loan_details.get('valuation'),
+                    'pricing': loan_details.get('pricing'),
+                    'offset': loan_details.get('offset'),
+                    'cashOutReason': loan_details.get('cash_out_reason'),
+                }
+                updated_json_data.update(opportunity_payload)
+                opportunity.json_data = updated_json_data
+                opportunity.save()
+                
+                note = Note(
+                    loan_details=loan_details,
+                    funds_available=serializer.validated_data.get('funds_available', {}),
+                    funds_complete=serializer.validated_data.get('funds_complete', {}),
+                    loan_purpose_note=serializer.validated_data.get('loan_purpose_note'),
+                    applicant_overview_note=serializer.validated_data.get('applicant_overview_note'),
+                    living_condition_note=serializer.validated_data.get('living_condition_note'),
+                    employment_income_note=serializer.validated_data.get('employment_income_note'),
+                    commitments_note=serializer.validated_data.get('commitments_note'),
+                    other_note=serializer.validated_data.get('other_note'),
+                    mitigants_note=serializer.validated_data.get('mitigants_note'),
+                    opportunity=opportunity,
+                    created_by=request.user,  # Assuming the user is authenticated
+                    updated_by=request.user
+                )
+                note.save()
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_201_CREATED,
+                    "data": BrokerNoteSerializer(note).data
+                }
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
+                
+        except ValidationError as e:  # Specific exceptions can be more useful
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class BrokerNoteDetailUpdateDeleteAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, pk, *args, **kwargs):
+        try:
+            note = Note.objects.filter(id=pk, created_by=request.user, status='active').first()
+            if not note:
+                return Response({
+                    "error": {
+                        "statusCode": status.HTTP_404_NOT_FOUND,
+                        "message": "Note with the given id does not exist or is not active",
+                    }
+                }, status=status.HTTP_404_NOT_FOUND)
+            serializer = BrokerNoteSerializer(note)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request, pk, *args, **kwargs):
+        note = Note.objects.get(pk=pk)
+        if not note:
+            return Response({"error": "Broker note not found."}, status=status.HTTP_404_NOT_FOUND)
+        if request.user != note.created_by:
+            return Response({"error": "You don't have permission to delete this Broker Note."}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            # Set status to 'inactive' to soft delete the service
+            note.status = 'inactive'
+            note.save()
+        except (ValidationError, IntegrityError) as e:
+            # Handle specific database errors
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "message": "Successfully deleted compliance note"
+        }, status=status.HTTP_200_OK)
+        
+    def patch(self, request, pk, *args, **kwargs):
+        note = Note.objects.get( pk=pk)
+        if not note:
+            return Response({"error": "Broker note not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = BrokerNoteSerializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        if request.user != note.created_by:
+            return Response({"error": "You don't have permission to update this broker Note."}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            with transaction.atomic():
+                loan_details = serializer.validated_data.get('loan_details', {})
+                opportunity = note.opportunity
+                updated_json_data = opportunity.json_data
+                opportunity_payload = {
+                    'lender': loan_details.get('lender'),
+                    'loanTerm': loan_details.get('loan_term'),
+                    'propertyValue':loan_details.get('property_value'),
+                    'interestRate': loan_details.get('interest_rate'),
+                    "purpose": loan_details.get('loan_purpose'),
+                    'loanAmount' : loan_details.get('loan_amount'),
+                    'product': loan_details.get('product'),
+                    'lvr': loan_details.get('lvr'),
+                    'valuation': loan_details.get('valuation'),
+                    'pricing': loan_details.get('pricing'),
+                    'offset': loan_details.get('offset'),
+                    'cashOutReason': loan_details.get('cash_out_reason'),
+                }
+                updated_json_data.update(opportunity_payload)
+                opportunity.json_data = updated_json_data
+                opportunity.save()
+                
+                note.updated_by = request.user
+                note.loan_details=loan_details
+                note.funds_available=serializer.validated_data.get('funds_available', {})
+                note.funds_complete=serializer.validated_data.get('funds_complete', {})
+                note.loan_purpose_note=serializer.validated_data.get('loan_purpose_note')
+                note.applicant_overview_note=serializer.validated_data.get('applicant_overview_note')
+                note.living_condition_note=serializer.validated_data.get('living_condition_note')
+                note.employment_income_note=serializer.validated_data.get('employment_income_note')
+                note.commitments_note=serializer.validated_data.get('commitments_note')
+                note.other_note=serializer.validated_data.get('other_note')
+                note.mitigants_note=serializer.validated_data.get('mitigants_note')
+                
+                note.save()
+                
+                serializer_data = BrokerNoteSerializer(note)
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": serializer_data.data,
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
+        except ValidationError as e:  # Specific exceptions can be more useful
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

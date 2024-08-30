@@ -82,6 +82,7 @@ class ComplianceNoteListCreateAPIView(APIView):
                     'lender_loan_note': serializer.validated_data.get('lender_loan_note'),
                     'status': 'active',
                     'opportunity_id': opportunity_id,
+                    
                     'created_by_id': request.user.id,
                     'updated_by_id': request.user.id,
                 }
@@ -146,19 +147,11 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         
         if request.user != note.created_by:
-            return Response({"error": "You don't have permission to delete this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
         
         try:
             with transaction.atomic():
-                opportunity_id = serializer.validated_data['opportunity_id']
-                opportunity = Opportunity.objects.filter(id=opportunity_id).first()
-                if not opportunity:
-                    return Response({
-                        "error": {
-                            "statusCode": status.HTTP_400_BAD_REQUEST,
-                            "message": "A deal with the given id does not exist",
-                        }
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                opportunity = note.opportunity
                     
                 opp_data_serializer = ComplianceOpportunitySerializer(data=serializer.validated_data.get('opportunity_data', {}))
                 if opp_data_serializer.is_valid():
