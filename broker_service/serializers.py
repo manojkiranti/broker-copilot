@@ -64,6 +64,7 @@ class FundsAvailableSerializer(serializers.Serializer):
     cash_gift = serializers.IntegerField(max_value=10000, allow_null=True, required=False)
     
 class GenerateBrokerNotePdfSerializer(serializers.Serializer):
+   
     date = serializers.CharField(max_length=10, allow_null=True, allow_blank=True, required=False)
     processor = ContactSerializer(required=False)
     primary_contact = NoteContactDataSerializer(required=False)
