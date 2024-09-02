@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.template.response import TemplateResponse
 from .serializers import (
     UserLoginSerializer, 
+    UserRegisterSerializer,
     GoogleVerifyAccessTokenSerializer, 
     GoogleVerifyCodeForTokenSerializer,
     UserListSerializer,
@@ -73,6 +74,45 @@ class UserLoginView(APIView):
             'is_active': user.is_active,
             'is_admin': user.is_admin,
         }, status=status.HTTP_200_OK)
+
+class UserRegisterView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, *args, **kwargs):
+        serializer = UserRegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+        fullname = serializer.validated_data['fullname']
+        password = serializer.validated_data['password']
+        phone = serializer.validated_data.get('phone')
+        broker_role = serializer.validated_data.get('broker_role')
+        
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            return Response({
+                "error": "An account with this email already exists."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create new user
+        user = User.objects.create_user(
+            email=email,
+            fullname=fullname,
+            phone=phone,
+            broker_role=broker_role
+        )
+        user.set_password(password)
+        user.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "success": True,
+            "data": {
+               'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user_id': user.uid,
+                'email': user.email
+            }
+        }, status=status.HTTP_201_CREATED)
+        
 
 class GenerateGoogleSignInLink(APIView):
     permission_classes = (AllowAny, )

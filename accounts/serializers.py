@@ -2,7 +2,9 @@ import logging
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from django.db.models import Q
+import re
 from django.contrib.auth import get_user_model
+
 # from .models import User
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -42,6 +44,25 @@ class UserLoginSerializer(serializers.Serializer):
 
         data['user'] = authenticated_user
         return data
+
+class UserRegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=255, required=True)
+    fullname = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    password = serializers.CharField(write_only=True, required=True)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    broker_role = serializers.ChoiceField(choices=User.BROKER_ROLES, required=False)
+    
+    def validate_password(self, value):
+        # Check the length of the password
+        if len(value) < 7:
+            raise serializers.ValidationError("Password must be at least 7 characters long.")
+
+        # Check for at least one special character
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+
+        return value
+    
 
 class UserListSerializer(serializers.ModelSerializer):
     is_profile_complete = SerializerMethodField()
