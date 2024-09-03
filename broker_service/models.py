@@ -14,6 +14,15 @@ class SystemPrompt(models.Model):
     mitigants = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"Broker Note Systemprompt"
+
+class BrokerPromptChoice(models.TextChoices):
+    LOAN_PURPOSE = 'loan_purpose', 'Loan Purpose'
+    APPLICANT_OVERVIEW = 'applicant_overview', 'Applicant Overview'
+    LIVING_CONDITION = 'living_condition', 'Living Condition'
+    EMPLOYMENT_INCOME = 'employment_income', 'Employment Income'
+    COMMITMENTS = 'commitments', 'Commitments'
+    OTHERS = 'others', 'Others'
+    MITIGANTS = 'mitigants', 'Mitigants'
     
 class Note(models.Model):
     loan_details = models.JSONField(default=dict)

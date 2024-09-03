@@ -5,7 +5,8 @@ from rest_framework import status
 from rest_framework.views  import APIView
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
-from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer, ComplianceOpportunitySerializer
+from accounts.permissions import IsAdminUser
+from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer, ComplianceOpportunitySerializer, SystemPromptSerializer
 from .data.content import SYSTEM_CONTENT
 from .models import SystemPrompt, Note
 from opportunity_app.models import Opportunity
@@ -198,6 +199,7 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class GenerateComplianceNoteAPIView(APIView):
      permission_classes = [IsAuthenticated]
 
@@ -217,9 +219,6 @@ class GenerateComplianceNoteAPIView(APIView):
         except KeyError:
             return Response({"error": "Invalid compliance field"}, status=status.HTTP_400_BAD_REQUEST)
  
-
-        
-
         # system_content = SYSTEM_CONTENT.get(system_content_type, 'loan_objectives')
         # Set up the header with your OpenAI API Key
         bearer_token = os.getenv('OPEN_AI_KEY')
@@ -270,4 +269,37 @@ class GenerateComplianceNoteAPIView(APIView):
                 "status_code": response.status_code,
                 "error": response.text
             }, status=status.HTTP_400_BAD_REQUEST)
+
+class SystemPromptListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            system_prompts = SystemPrompt.objects.all()
+            serializer = SystemPromptSerializer(system_prompts, many=True)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
         
+class SystemPromptPatchAPIView(APIView):
+    permission_classes = [IsAdminUser]
+    
+    def patch(self, request, pk):
+        try:
+            system_prompt = SystemPrompt.objects.get(pk=pk)
+        except SystemPrompt.DoesNotExist:
+            return Response({"error": "System prompt not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = SystemPromptSerializer(system_prompt, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": serializer.data
+                    }
+        return Response(response_data, status=status.HTTP_200_OK)

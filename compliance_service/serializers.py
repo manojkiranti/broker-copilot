@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from opportunity_app.models import LenderChoices, LoanPurposeChoices
 from opportunity_app.serializers import OpportunityNameSerializer, OpportunitySerializer
-from .models import Note
+from .models import Note, SystemPrompt
 
 class UserContentSerializer(serializers.Serializer):
     user_content = serializers.CharField(max_length=1024, required=False, allow_blank=True)
@@ -62,4 +62,8 @@ class ComplianceNoteSerializer(serializers.Serializer):
     opportunity_data = ComplianceOpportunitySerializer(required=False)
     
     updated_at = serializers.DateTimeField(read_only=True)
-    
+
+class SystemPromptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SystemPrompt
+        fields = '__all__'

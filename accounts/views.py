@@ -269,6 +269,7 @@ class UserUpdateAPIView(APIView):
             response_data = {
                     "success": True,
                     "statusCode": status.HTTP_200_OK,
+                    "data": UserUpdateSerializer(user).data,
                     "message": "Profile updated successfully"
                 }
             return Response(response_data, status=status.HTTP_200_OK)

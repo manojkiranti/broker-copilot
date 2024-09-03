@@ -2,6 +2,7 @@ from django.db import models
 from enum import Enum
 from django.contrib.auth import get_user_model
 from opportunity_app.models import Opportunity, LenderChoices
+from utils.constant import StatusChoices
 User = get_user_model()
 
 # Create your models here.
@@ -16,7 +17,31 @@ class SystemPrompt(models.Model):
     goals_objectives = models.TextField(blank=True, null=True)
     def __str__(self):
         return f"Compliance Note Systemprompt"
+
+class CompliancePromptChoices(models.TextChoices):
+    LOAN_OBJECTIVES = 'loan_objectives', 'Loan Objectives'
+    LOAN_REQUIREMENTS = 'loan_requirements', 'Loan Requirements'
+    LOAN_CIRCUMSTANCES = 'loan_circumstances', 'Loan Circumstances'
+    LOAN_FINANCIAL_AWARENESS = 'loan_financial_awareness', 'Loan Financial Awareness'
+    LOAN_PRIORITISED = 'loan_prioritised', 'Loan Prioritised'
+    LENDER_LOAN = 'lender_loan', 'Lender Loan'
+    LOAN_STRUCTURE = 'loan_structure', 'Loan Structure'
+    GOALS_OBJECTIVES = 'goals_objectives', 'Goals Objectives'
+  
+
+class ComplianceSystemPrompt(models.Model):
+    prompt_type = models.CharField(choices=CompliancePromptChoices.choices)
+    prompt =  models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)   
     
+    created_by = models.ForeignKey(User, related_name='created_system_prompt', on_delete=models.SET_NULL, null=True)
+    updated_by = models.ForeignKey(User, related_name='updated_system_prompt', on_delete=models.SET_NULL, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.prompt_type
     
 class Note(models.Model):
     class ComplianceNoteStatus(models.TextChoices):
