@@ -23,6 +23,20 @@ class BrokerPromptChoice(models.TextChoices):
     COMMITMENTS = 'commitments', 'Commitments'
     OTHERS = 'others', 'Others'
     MITIGANTS = 'mitigants', 'Mitigants'
+
+class BrokerNoteSystemprompt(models.Model):
+    prompt_type = models.CharField(choices=BrokerPromptChoice.choices)
+    prompt =  models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=StatusChoices.choices, default=StatusChoices.ACTIVE)   
+    
+    created_by = models.ForeignKey(User, related_name='created_broker_note_system_prompt', on_delete=models.SET_NULL, null=True)
+    updated_by = models.ForeignKey(User, related_name='updated_broker_note_system_prompt', on_delete=models.SET_NULL, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.prompt_type
     
 class Note(models.Model):
     loan_details = models.JSONField(default=dict)

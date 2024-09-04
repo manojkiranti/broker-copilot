@@ -284,7 +284,7 @@ class GenerateComplianceNoteV2APIView(APIView):
             system_prompt = ComplianceSystemPrompt.objects.get(prompt_type=system_content_type)
             system_content = system_prompt.prompt
 
-        except SystemPrompt.DoesNotExist:
+        except ComplianceSystemPrompt.DoesNotExist:
             return Response({"error": "System content not found"}, status=status.HTTP_404_NOT_FOUND)
         except KeyError:
             return Response({"error": "Invalid compliance field"}, status=status.HTTP_400_BAD_REQUEST)

@@ -3,21 +3,15 @@ from rest_framework import serializers
 from opportunity_app.serializers import ContactDataSerializer
 from utils.constant import StatusChoices
 from opportunity_app.serializers import  OpportunitySerializer
+from .models import BrokerPromptChoice, BrokerNoteSystemprompt
 
 class UserContentSerializer(serializers.Serializer):
     user_content = serializers.CharField(max_length=5000, required=False, allow_blank=True)
     broker_note_field = serializers.ChoiceField(
-        choices=[
-            ('loan_purpose', 'Loan Purpose'),
-            ('applicant_overview', 'Applicant Overview'),
-            ('living_condition', 'Living Condition'),
-            ('employment_income', 'Employment Income'),
-            ('commitments', 'Commitments'),
-            ('others', 'Others'),
-            ('mitigants', 'Mitigants')
-        ],
+        choices=BrokerPromptChoice.choices,
         required=True
     )
+    
 
 class ContactSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100, allow_null=True, allow_blank=True, required=False)
@@ -108,4 +102,8 @@ class BrokerNoteSerializer(serializers.Serializer):
     
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
-    
+
+class SystemPromptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrokerNoteSystemprompt
+        exclude=['created_by', 'updated_by']
