@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.permissions import IsAdminUser
 from compliance_service.serializers import UserContentSerializer, ComplianceNoteSerializer, ComplianceOpportunitySerializer, SystemPromptSerializer
 from .data.content import SYSTEM_CONTENT
-from .models import SystemPrompt, Note
+from .models import SystemPrompt, Note, ComplianceSystemPrompt
 from opportunity_app.models import Opportunity
 import requests
 import os
@@ -270,11 +270,81 @@ class GenerateComplianceNoteAPIView(APIView):
                 "error": response.text
             }, status=status.HTTP_400_BAD_REQUEST)
 
+class GenerateComplianceNoteV2APIView(APIView):
+     permission_classes = [IsAuthenticated]
+
+     def post(self, request, *args, **kwargs):
+        serializer = UserContentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user_content = serializer.validated_data['user_content']
+        system_content_type = serializer.validated_data['compliance_field']
+        
+        try:
+            # Fetch the latest entry from SystemPrompt for the given compliance_field
+            system_prompt = ComplianceSystemPrompt.objects.get(prompt_type=system_content_type)
+            system_content = system_prompt.prompt
+
+        except SystemPrompt.DoesNotExist:
+            return Response({"error": "System content not found"}, status=status.HTTP_404_NOT_FOUND)
+        except KeyError:
+            return Response({"error": "Invalid compliance field"}, status=status.HTTP_400_BAD_REQUEST)
+ 
+        # system_content = SYSTEM_CONTENT.get(system_content_type, 'loan_objectives')
+        # Set up the header with your OpenAI API Key
+        bearer_token = os.getenv('OPEN_AI_KEY')
+        temperature = float(os.getenv('OPEN_AI_TEMPERATURE'))
+        OPEN_AI_URL = os.getenv('OPEN_AI_URL')
+        GPT_MODEL = os.getenv('GPT_MODEL')
+        
+        headers = {
+            'Authorization': f'Bearer {bearer_token}',
+            'Content-Type': 'application/json'
+        }
+
+        # The body of your request to OpenAI
+        data = {
+            "model": GPT_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_content
+                },
+                {
+                  "role": "user",
+                  "content": user_content
+                }
+            ],
+            "temperature":temperature
+        }
+
+        # The endpoint URL
+        url = OPEN_AI_URL
+
+        # Make the POST request
+        response = requests.post(url, json=data, headers=headers)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Return the content of the response from OpenAI
+            response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data":  response.json()
+                    }
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            # If the call was unsuccessful, return an error status
+            return Response({
+                "message": "Failed to generate compliance note",
+                "status_code": response.status_code,
+                "error": response.text
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 class SystemPromptListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            system_prompts = SystemPrompt.objects.all()
+            system_prompts = ComplianceSystemPrompt.objects.all()
             serializer = SystemPromptSerializer(system_prompts, many=True)
             response_data = {
                 "success": True,
@@ -290,16 +360,16 @@ class SystemPromptPatchAPIView(APIView):
     
     def patch(self, request, pk):
         try:
-            system_prompt = SystemPrompt.objects.get(pk=pk)
-        except SystemPrompt.DoesNotExist:
+            prompt_instance = ComplianceSystemPrompt.objects.get(pk=pk)
+        except ComplianceSystemPrompt.DoesNotExist:
             return Response({"error": "System prompt not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = SystemPromptSerializer(system_prompt, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        response_data = {
-                    "success": True,
-                    "statusCode": status.HTTP_200_OK,
-                    "data": serializer.data
-                    }
-        return Response(response_data, status=status.HTTP_200_OK)
+        prompt_data = request.data.get('prompt', None)
+        if prompt_data is not None:            
+            prompt_instance.prompt = prompt_data
+            prompt_instance.save()
+            response_data = {
+                        "success": True,
+                        "statusCode": status.HTTP_200_OK,
+                        "data": SystemPromptSerializer(prompt_instance).data
+                        }
+            return Response(response_data, status=status.HTTP_200_OK)
