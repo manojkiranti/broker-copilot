@@ -83,4 +83,5 @@ xhtml2pdf==0.2.16
 zopfli==0.2.3
 pdfkit==1.0.0
 gunicorn
+openai==1.43.1
 # django-cron==0.6.0
