@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
-
+import openai
 # Get the path to the .env file
 
 # Load the .env file
@@ -261,3 +261,6 @@ TIME_ZONE = 'Asia/Kathmandu'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = False
+
+# Setting the OpenAI configurations
+openai.api_key = OPENAI_API_KEY

@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import BankPolicy, Policy, Bank
-from .serializers import BankPolicySerializer, BankPolicyQuerySerializer, BankSerializer, PolicySerializer
+from .models import BankPolicy, Policy, Bank, ChatSession, Message
+from .serializers import BankPolicySerializer, BankPolicyQuerySerializer, BankSerializer, PolicySerializer, ChatSessionSerializer, MessageSerializer
 from django.db.models import Prefetch
 import requests
 import os
@@ -94,7 +94,7 @@ class BankPolicyListAPIView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
     
 class BankPolicyNoteAPIView(APIView):
-    permission_classes = [IsAuthenticated]\
+    permission_classes = [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
         serializer = BankPolicyQuerySerializer(data=request.data)
@@ -102,47 +102,32 @@ class BankPolicyNoteAPIView(APIView):
         bank_id = serializer.validated_data.get('bank_id')
         policy_id = serializer.validated_data.get('policy_id')
         user_query = serializer.validated_data.get('user_query')
-        session_id = serializer.validated_data.get('session_id')
-        if session_id:
-            gpt_response = continue_conversation(session_id, user_query)
-        else:    
-            if bank_id and policy_id:
-                    queryset = BankPolicy.objects.filter(bank_id=bank_id, policy_id=policy_id)
-            elif bank_id:
-                queryset = BankPolicy.objects.filter(bank_id=bank_id)
-            elif policy_id:
-                queryset = BankPolicy.objects.filter(policy_id=policy_id)
-            result_serializer = BankPolicySerializer(queryset, many=True)   
-        
-            gpt_response = get_gpt_response(user_query, result_serializer.data)
-        print(gpt_response)
-      
+        if 'chat_id' in serializer.validated_data:
+            chat_session = ChatSession.objects.get(id=serializer.validated_data['chat_id'])
+        else:
+            chat_session = ChatSession.objects.create(user=request.user, title=user_query)
+        Message.objects.create(chat_session=chat_session, text=user_query, sender='user')    
+           
+        if bank_id and policy_id:
+                queryset = BankPolicy.objects.filter(bank_id=bank_id, policy_id=policy_id)
+        elif bank_id:
+            queryset = BankPolicy.objects.filter(bank_id=bank_id)
+        elif policy_id:
+            queryset = BankPolicy.objects.filter(policy_id=policy_id)
+        result_serializer = BankPolicySerializer(queryset, many=True)   
+    
+        gpt_response = get_gpt_response(user_query, result_serializer.data)
+        if 'choices' in gpt_response and gpt_response['choices']:
+            assistant_response = gpt_response['choices'][0]['message']['content']
+            Message.objects.create(chat_session=chat_session, text=assistant_response, sender='assistant')
+            
         response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
                 "data": gpt_response,
+                "chat_id": chat_session.id
             }
         return Response(response_data, status=status.HTTP_200_OK)
-
-def continue_conversation(session_id, user_query):
-    print("session_id", session_id)
-    bearer_token = os.getenv('OPEN_AI_KEY')
-    GPT_MODEL = os.getenv('GPT_LATEST_MODEL')
-    headers = {
-        'Authorization': f'Bearer {bearer_token}',
-        'Content-Type': 'application/json'
-    }
-
-    data = {
-        "model": GPT_MODEL,
-        "session_id": session_id,  
-        "messages": [
-            {"role": "user", "content": user_query}
-        ]
-    }
-
-    response = requests.post("https://api.openai.com/v1/chat/completions", json=data, headers=headers)
-    return response.json()  # Process the response as needed
 
 def get_gpt_response(user_query, policy_data):
     
@@ -188,3 +173,22 @@ def get_gpt_response(user_query, policy_data):
         return response.json()  # Return JSON response data
     except RequestException as e:
         return {'error': str(e)}  # Return error details as JSON
+    
+    
+
+class ChatSessionListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            chat_sessions = ChatSession.objects.filter(user=request.user)
+            serializer = ChatSessionSerializer(chat_sessions, many=True)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+        
