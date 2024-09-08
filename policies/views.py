@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import BankPolicy, Policy, Bank, ChatSession, Message
-from .serializers import BankPolicySerializer, BankPolicyQuerySerializer, BankSerializer, PolicySerializer, ChatSessionSerializer, MessageSerializer
+from .serializers import BankPolicyNoteSerializer, BankPolicySerializer, BankPolicyQuerySerializer, BankSerializer, PolicySerializer, ChatSessionSerializer, MessageSerializer
 from django.db.models import Prefetch
 import requests
 import os
@@ -92,6 +92,10 @@ class BankPolicyListAPIView(APIView):
                 "data": {"banks": banks_list, "policies": data},
             }
         return Response(response_data, status=status.HTTP_200_OK)
+
+class BankPolicyDetailUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     
 class BankPolicyNoteAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -114,7 +118,7 @@ class BankPolicyNoteAPIView(APIView):
             queryset = BankPolicy.objects.filter(bank_id=bank_id)
         elif policy_id:
             queryset = BankPolicy.objects.filter(policy_id=policy_id)
-        result_serializer = BankPolicySerializer(queryset, many=True)   
+        result_serializer = BankPolicyNoteSerializer(queryset, many=True)   
     
         gpt_response = get_gpt_response(user_query, result_serializer.data)
         if 'choices' in gpt_response and gpt_response['choices']:
@@ -191,4 +195,22 @@ class ChatSessionListAPIView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+
+class MessageListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, session_id):
+        try:
+            messages = Message.objects.filter(chat_session_id=session_id)
+            serializer = MessageSerializer(messages, many=True)
+            response_data = {
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data": serializer.data,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+        
+        
         

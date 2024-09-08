@@ -11,7 +11,12 @@ class PolicySerializer(serializers.ModelSerializer):
         model = Policy
         fields = ('id', 'name')
 
-class BankPolicySerializer(serializers.ModelSerializer):
+class BankPolicySerializer(serializers.Serializer):
+    bank_id = serializers.IntegerField()
+    policy_id = serializers.IntegerField()
+    description = serializers.CharField(max_length=255, allow_null=True, required=False)
+    
+class BankPolicyNoteSerializer(serializers.ModelSerializer):
     bank = BankSerializer(read_only=True)
     policy = PolicySerializer(read_only=True)
     created_by = serializers.StringRelatedField()
