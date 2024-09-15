@@ -173,11 +173,17 @@ class GeneratePdfView(APIView):
 
         try:
             
-            # Accessing nested contact data
+            # Accessing nested broker detail data
             processor_data = serializer.validated_data.get('processor', {})
             processor_name = processor_data.get('name', "")
             processor_email = processor_data.get('email', "")
             processor_phone = processor_data.get('phone', "")
+            
+            # Accessing nested processor detail data
+            secondary_processor_data = serializer.validated_data.get('secondary_processor', {})
+            secondary_processor_name = secondary_processor_data.get('name', "")
+            secondary_processor_email = secondary_processor_data.get('email', "")
+            secondary_processor_phone = secondary_processor_data.get('phone', "")
             
             # Accessing primary contact data
             primary_contact_data = serializer.validated_data.get('primary_contact', {})
@@ -243,6 +249,9 @@ class GeneratePdfView(APIView):
                 'processor_name': processor_name,
                 'processor_email': processor_email,
                 'processor_phone': processor_phone,
+                'secondary_processor_name': secondary_processor_name,
+                'secondary_processor_email': secondary_processor_email,
+                'secondary_processor_phone': secondary_processor_phone,
                 'applicant_first_name': frist_name,
                 'applicant_last_last': last_name,
                 'applicant_occupation': primary_contact_occupation,

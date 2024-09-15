@@ -49,7 +49,6 @@ class OpportunitySerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        print(ret)
         if 'json_data' in ret and isinstance(instance.json_data, dict):
             ret['json_data']['id'] = instance.id
         # ret['primary_contact'] = ContactSerializer(instance.primary_contact).data if instance.primary_contact else None

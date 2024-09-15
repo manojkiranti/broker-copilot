@@ -61,6 +61,7 @@ class GenerateBrokerNotePdfSerializer(serializers.Serializer):
    
     date = serializers.CharField(max_length=10, allow_null=True, allow_blank=True, required=False)
     processor = ContactSerializer(required=False)
+    secondary_processor = ContactSerializer(required=False)
     primary_contact = NoteContactDataSerializer(required=False)
     co_applicant_status = serializers.BooleanField()
     secondary_contact = NoteContactDataSerializer(required=False)

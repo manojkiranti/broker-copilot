@@ -211,7 +211,7 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
         if not opportunity:
             return Response({"error": "Deals not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = OpportunitySerializer(data=request.data)
+        serializer = OpportunitySerializer(opportunity,data=request.data, partial=True)
        
         serializer.is_valid(raise_exception=True)
         if request.user != opportunity.created_by and \
@@ -236,11 +236,25 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
             
         try:
             with transaction.atomic():
-                opportunity.name = name
-                opportunity.type = serializer.validated_data.get('type')
-                opportunity.website_tracking_id = website_tracking_id
-                opportunity.json_data = serializer.validated_data.get('json_data', {})
+                json_data = serializer.validated_data.pop('json_data', None)
+                if json_data:
+                    # Update json_data dictionary without replacing it entirely
+                    current_json_data = opportunity.json_data
+                    
+                    current_json_data.update(json_data)
+                    opportunity.json_data = current_json_data
+                    
+                name = serializer.validated_data.get('name')
+                if name:
+                    opportunity.name = name
 
+                opportunity_type = serializer.validated_data.get('type')
+                if opportunity_type:
+                    opportunity.type = opportunity_type
+                
+                if website_tracking_id:
+                    opportunity.website_tracking_id = website_tracking_id
+                    
                 # Associate Primary Contact
                 primary_contact_data = serializer.validated_data.pop('primary_contact', None)
                 if primary_contact_data:
