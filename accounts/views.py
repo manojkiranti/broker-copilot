@@ -147,13 +147,14 @@ class GoogleVerifyCodeForToken(GoogleOAuthHandler):
             # Initialize OAuth2Session with client credentials
             oauth = OAuth2Session(os.getenv('GOOGLE_CLIENT_ID'), redirect_uri=os.getenv('REDIRECT_URI'))
             # Fetch token using authorization code
+
             token = oauth.fetch_token(
                 token_url='https://oauth2.googleapis.com/token',
                 code=serializer.validated_data['code'],
                 client_id=os.getenv('GOOGLE_CLIENT_ID'),
                 client_secret=os.getenv('GOOGLE_CLIENT_SECRET')
             )
-
+     
             # Use the obtained token to fetch user info
             userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
 

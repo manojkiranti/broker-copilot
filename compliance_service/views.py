@@ -20,7 +20,7 @@ class ComplianceNoteListCreateAPIView(APIView):
     
     def get(self, request, *args, **kwargs):
         try:
-            notes_query = Note.objects.filter(created_by=request.user, status='active').order_by('-updated_at')
+            notes_query = Note.objects.filter(status='active').order_by('-updated_at')
             # Check for 'latest' query parameter
             if request.query_params.get('latest') == 'true':
                 notes_query = notes_query[:3]  # Limit to latest 3 notes

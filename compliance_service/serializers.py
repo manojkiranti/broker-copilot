@@ -51,7 +51,8 @@ class ComplianceNoteSerializer(serializers.Serializer):
     lender_loan_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     
     opportunity_data = ComplianceOpportunitySerializer(required=False)
-    
+    updated_by = serializers.EmailField(source='updated_by.email', read_only=True)
+    created_by = serializers.EmailField(source='updated_by.email', read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
 class SystemPromptSerializer(serializers.ModelSerializer):
