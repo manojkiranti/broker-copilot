@@ -29,7 +29,8 @@ class LenderChoices(models.TextChoices):
     BRIGHTEN = 'brighten', 'Brighten'
     LA_TROBE = 'la_trobe', 'LaTrobe'
     MEZY = 'mezy', 'MEZY'
-    MA_MONEY = 'ma_money', 'MA Money'
+    MA_MONEY = 'ma_money', 'MA Money',
+    BANKWEST = 'bankwest', 'Bankwest'
     
 class LoanPurposeChoices(models.TextChoices):
     INVESTMENT_PROPERTY = 'investment_property', 'Investment Property'
