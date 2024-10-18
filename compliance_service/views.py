@@ -162,27 +162,71 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
                     opportunity.save()
              
                 note.updated_by = request.user
-                note.document_identification_method = serializer.validated_data.get('document_identification_method')
-                note.client_interview_method = serializer.validated_data.get('client_interview_method')
-                note.credit_guide_provided = serializer.validated_data.get('credit_guide_provided')
-                note.estimated_settlement_date = serializer.validated_data.get('estimated_settlement_date')
-                note.facility_amount = serializer.validated_data.get('facility_amount')
-                note.rate_type = serializer.validated_data.get('rate_type')
-                note.repayment_type = serializer.validated_data.get('repayment_type')
-                note.repayment_frequency = serializer.validated_data.get('repayment_frequency')
-                note.offset = serializer.validated_data.get('offset')
-                note.cash_out_involved = serializer.validated_data.get('cash_out_involved')
-                note.loan_structure = serializer.validated_data.get('loan_structure')
-                note.loan_scenario_lender_1 = serializer.validated_data.get('loan_scenario_lender_1')
-                note.loan_scenario_lender_2 = serializer.validated_data.get('loan_scenario_lender_2')
-                note.loan_scenario_lender_3 = serializer.validated_data.get('loan_scenario_lender_3')
-                note.loan_objective_note = serializer.validated_data.get('loan_objective_note')
-                note.loan_requirement_note = serializer.validated_data.get('loan_requirement_note')
-                note.loan_circumstances_note = serializer.validated_data.get('loan_circumstances_note')
-                note.loan_financial_awareness_note = serializer.validated_data.get('loan_financial_awareness_note')
-                note.loan_structure_note = serializer.validated_data.get('loan_structure_note')
-                note.loan_prioritised_note = serializer.validated_data.get('loan_prioritised_note')
-                note.lender_loan_note = serializer.validated_data.get('lender_loan_note')
+                
+                
+                if 'document_identification_method' in request.data:
+                    note.document_identification_method = serializer.validated_data.get('document_identification_method')
+
+                if 'client_interview_method' in request.data:
+                    note.client_interview_method = serializer.validated_data.get('client_interview_method')
+
+                if 'credit_guide_provided' in request.data:
+                    note.credit_guide_provided = serializer.validated_data.get('credit_guide_provided')
+
+                if 'estimated_settlement_date' in request.data:
+                    note.estimated_settlement_date = serializer.validated_data.get('estimated_settlement_date')
+
+                if 'facility_amount' in request.data:
+                    note.facility_amount = serializer.validated_data.get('facility_amount')
+
+                if 'rate_type' in request.data:
+                    note.rate_type = serializer.validated_data.get('rate_type')
+
+                if 'repayment_type' in request.data:
+                    note.repayment_type = serializer.validated_data.get('repayment_type')
+
+                if 'repayment_frequency' in request.data:
+                    note.repayment_frequency = serializer.validated_data.get('repayment_frequency')
+
+                if 'offset' in request.data:
+                    note.offset = serializer.validated_data.get('offset')
+
+                if 'cash_out_involved' in request.data:
+                    note.cash_out_involved = serializer.validated_data.get('cash_out_involved')
+
+                if 'loan_structure' in request.data:
+                    note.loan_structure = serializer.validated_data.get('loan_structure')
+
+                if 'loan_scenario_lender_1' in request.data:
+                    note.loan_scenario_lender_1 = serializer.validated_data.get('loan_scenario_lender_1')
+
+                if 'loan_scenario_lender_2' in request.data:
+                    note.loan_scenario_lender_2 = serializer.validated_data.get('loan_scenario_lender_2')
+
+                if 'loan_scenario_lender_3' in request.data:
+                    note.loan_scenario_lender_3 = serializer.validated_data.get('loan_scenario_lender_3')
+
+                if 'loan_objective_note' in request.data:
+                    note.loan_objective_note = serializer.validated_data.get('loan_objective_note')
+
+                if 'loan_requirement_note' in request.data:
+                    note.loan_requirement_note = serializer.validated_data.get('loan_requirement_note')
+
+                if 'loan_circumstances_note' in request.data:
+                    note.loan_circumstances_note = serializer.validated_data.get('loan_circumstances_note')
+
+                if 'loan_financial_awareness_note' in request.data:
+                    note.loan_financial_awareness_note = serializer.validated_data.get('loan_financial_awareness_note')
+
+                if 'loan_structure_note' in request.data:
+                    note.loan_structure_note = serializer.validated_data.get('loan_structure_note')
+
+                if 'loan_prioritised_note' in request.data:
+                    note.loan_prioritised_note = serializer.validated_data.get('loan_prioritised_note')
+
+                if 'lender_loan_note' in request.data:
+                    note.lender_loan_note = serializer.validated_data.get('lender_loan_note')
+                
                 note.opportunity = opportunity
                 note.save()
                 
