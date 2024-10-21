@@ -11,6 +11,7 @@ import re
 import datetime
 import urllib.parse
 from urllib.parse import unquote
+from django.core.mail import send_mail
 # Create your views here.
 
 from .serializers import ForexConvertSerializer
@@ -23,6 +24,22 @@ def get_encoded_headers():
         "Authorization": f"Basic {encoded_credentials}"
     }
     return headers
+
+class EmailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            send_mail(
+                'Test Email Subject',
+                'This is a test email message.',
+                'from@example.com',  # From email
+                ['to@example.com'],  # To email
+                fail_silently=False,
+            )
+            return Response({"message": "Email sent successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class WebsiteDataListAPIView(APIView):
     permission_classes = [IsAuthenticated]
