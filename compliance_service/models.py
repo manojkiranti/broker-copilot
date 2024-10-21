@@ -68,6 +68,8 @@ class Note(models.Model):
         FIXED_RATE = 'fixed_rate', 'Fixed Rate'
         VARIABLE_RATE = 'variable_rate', 'Variable Rate'
         FIXED_AND_VARIABLE_RATE = 'fixed_and_variable_rate', 'Fixed & Variable Rate'
+        VARIABLE = 'Variable', 'Variable',
+        FIXED = 'Fixed', 'Fixed'
         
     class RepaymentChoices(models.TextChoices):
         INTEREST_ONLY = 'interest_only', 'Interest Only'
