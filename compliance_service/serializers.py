@@ -15,7 +15,8 @@ class ComplianceOpportunitySerializer(serializers.Serializer):
     purpose = serializers.ChoiceField(choices=LoanPurposeChoices.choices, required=False, allow_blank=True, allow_null=True)
     offset = serializers.CharField(max_length=10, required=False, allow_null=True, allow_blank=True)
     rateType_1a = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
-    
+    rateType_1a = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
+    cashOutReason = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
     
 class ComplianceNoteSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)

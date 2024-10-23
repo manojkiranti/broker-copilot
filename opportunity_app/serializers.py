@@ -42,6 +42,51 @@ class OpportunitySerializer(serializers.Serializer):
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
     stage = serializers.SlugRelatedField(read_only=True, slug_field='name')
 
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.type = validated_data.get('type', instance.type)
+        instance.website_tracking_id = validated_data.get('website_tracking_id', instance.website_tracking_id)
+        instance.json_data = validated_data.get('json_data', instance.json_data)
+        
+        # Handle contacts
+        primary_contact_data = validated_data.get('primary_contact', None)
+        if primary_contact_data:
+            primary_contact, created = ContactsOpportunity.objects.get_or_create(
+                email=primary_contact_data['email'],
+                defaults=primary_contact_data
+            )
+            if not created:
+                for key, value in primary_contact_data.items():
+                    if key != 'email':
+                        setattr(primary_contact, key, value)
+                primary_contact.save()
+            instance.primary_contact = primary_contact
+        
+        secondary_contact_data = validated_data.get('secondary_contact', None)
+        if secondary_contact_data:
+            secondary_contact, created = ContactsOpportunity.objects.get_or_create(
+                email=secondary_contact_data['email'],
+                defaults=secondary_contact_data
+            )
+            if not created:
+                for key, value in secondary_contact_data.items():
+                    if key != 'email':
+                        setattr(secondary_contact, key, value)
+                secondary_contact.save()
+            instance.secondary_contact = secondary_contact
+
+        # Handle processors
+        primary_processor_email = validated_data.get('primary_processor', None)
+        if primary_processor_email:
+            instance.primary_processor = User.objects.get(email=primary_processor_email)
+        
+        secondary_processor_email = validated_data.get('secondary_processor', None)
+        if secondary_processor_email:
+            instance.secondary_processor = User.objects.get(email=secondary_processor_email)
+        
+        instance.save()
+        return instance
+    
     def validate_website_tracking_id(self, value):
         if value == '':
             return None

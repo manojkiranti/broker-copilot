@@ -299,6 +299,60 @@ class OpportunityServiceDetailUpdateDeleteAPIView(APIView):
             print(e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        
+class OpportunityServiceDetailUpdateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get_object(self, pk):
+        try:
+            return Opportunity.objects.get(pk=pk)
+        except Opportunity.DoesNotExist:
+            return None
+    def patch(self, request, pk, *args, **kwargs):
+        opportunity = self.get_object(pk)
+        if not opportunity:
+            return Response({"error": "Deals not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = OpportunitySerializer(opportunity, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        if request.user != opportunity.created_by and \
+             request.user != opportunity.primary_contact and \
+             request.user != opportunity.secondary_contact:
+            return Response({"error": "You don't have permission to update this Deals."}, status=status.HTTP_403_FORBIDDEN)
+        
+        name = serializer.validated_data.get('name')
+        if Opportunity.objects.filter(name=name).exclude(pk=opportunity.pk).exists():
+            return Response({"error": "An Deal with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+        # Check for website_tracking_id uniqueness except for the current instance
+        website_tracking_id = serializer.validated_data.get('website_tracking_id')
+        if website_tracking_id:
+            if Opportunity.objects.filter(website_tracking_id=website_tracking_id).exclude(pk=pk).exists():
+                return Response({
+                    "error": "An Deals with this website tracking ID already exists."
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            with transaction.atomic():
+                serializer.save()
+                
+                # Prepare response data including ContactInfo details if created
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": {
+                        "id": opportunity.id,
+                        "name": opportunity.name.lower()
+                    }
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class ContactListCreateUpdateAPIView(APIView):
     permission_classes = [IsAuthenticated]
     
