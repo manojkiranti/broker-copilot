@@ -39,6 +39,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('api/', include('accounts.urls')),
+    path('api/', include('authentication.urls')),
     path('api/', include('services.urls')),
     path('api/anz/', include(anz.urls)),
     path('api/ai/', include(ai_service.urls)),

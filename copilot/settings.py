@@ -49,7 +49,9 @@ INSTALLED_APPS = [
     'compliance_service',
     'dashboard_app',
     'broker_service',
-    'policies'
+    'policies',
+    'core',
+    'authentication'
 ]
 
 MIDDLEWARE = [
