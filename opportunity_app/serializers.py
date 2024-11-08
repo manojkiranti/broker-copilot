@@ -41,6 +41,8 @@ class OpportunitySerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField(read_only=True)
     completed_at = serializers.DateTimeField(allow_null=True, required=False)
     stage = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    
+    created_by = UserListSerializer(read_only=True)  
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
