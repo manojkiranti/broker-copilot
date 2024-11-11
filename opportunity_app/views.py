@@ -402,7 +402,8 @@ class ContactListCreateUpdateAPIView(APIView):
                 'email': email,
                 'name': serializer.validated_data.get('name'),
                 'phone': serializer.validated_data.get('phone'),
-                'residency': serializer.validated_data.get('residency')
+                'residency': serializer.validated_data.get('residency'),
+                'citizenship': serializer.validated_data.get('citizenship')
             }
             contact_opportunity = ContactsOpportunity.objects.create(**contact_data)
             # Create OpportunityServiceHistory object
@@ -496,7 +497,8 @@ class ContactCheckAPIView(APIView):
                         'email': email,
                         'name': serializer.validated_data.get('name'),
                         'phone': serializer.validated_data.get('phone'),
-                        'residency': serializer.validated_data.get('residency')
+                        'residency': serializer.validated_data.get('residency'),
+                        'citizenship': serializer.validated_data.get('citizenship')
                     }
                     contact_opportunity = ContactsOpportunity.objects.create(**contact_data)
                     # Create OpportunityServiceHistory object
