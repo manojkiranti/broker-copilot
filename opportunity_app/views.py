@@ -516,3 +516,58 @@ class ContactCheckAPIView(APIView):
                     print(e)
                     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ContactGetOrCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        
+        # Check if the email is provided
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        contact = ContactsOpportunity.objects.filter(email=email).first()
+        
+        if contact:
+            data = request.data.copy()  # Make a copy of the request data to modify it
+            data.pop('email', None) 
+            # If contact exists, we need to update the contact if there are changes
+            serializer = ContactSerializer(contact, data=request.data, partial=True)  # Use partial=True for partial update
+            if serializer.is_valid():
+                # Save the updated contact details
+                updated_contact = serializer.save()
+                
+                # Return the updated contact data
+                return Response({
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": serializer.data
+                })
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # If contact doesn't exist, create a new one
+            serializer = ContactSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                try:
+                    contact_data = {
+                        'created_by': request.user,
+                        'email': email,
+                        'name': serializer.validated_data.get('name'),
+                        'phone': serializer.validated_data.get('phone'),
+                        'residency': serializer.validated_data.get('residency'),
+                        'citizenship': serializer.validated_data.get('citizenship')
+                    }
+                    contact_opportunity = ContactsOpportunity.objects.create(**contact_data)
+
+                    # Prepare response data including ContactInfo details if created
+                    response_data = {
+                        "success": True,
+                        "statusCode": status.HTTP_201_CREATED,
+                        "data": ContactSerializer(contact_opportunity).data
+                    }
+
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
