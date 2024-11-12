@@ -31,7 +31,8 @@ class LenderChoices(models.TextChoices):
     MEZY = 'mezy', 'MEZY'
     MA_MONEY = 'ma_money', 'MA Money',
     BANKWEST = 'bankwest', 'Bankwest',
-    ING = 'ing', 'Ing'
+    ING = 'ing', 'Ing',
+    GREAT_SOUTHERN_BANK = 'great_southern_bank', 'Great Southern Bank'
     
 class LoanPurposeChoices(models.TextChoices):
     INVESTMENT_PROPERTY = 'investment_property', 'Investment Property'
