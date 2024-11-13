@@ -199,7 +199,59 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class ComplianceNoteUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def patch(self, request, pk, *args, **kwargs):
+        note = Note.objects.get( pk=pk)
+        if not note:
+            return Response({"error": "Compliance note not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if request.user != note.created_by:
+            return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+        
+        serializer = ComplianceNoteSerializer(note, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            with transaction.atomic():
+                opportunity_data = serializer.validated_data.pop('opportunity_data', None)
+                if opportunity_data:
+                    opp_data_serializer = ComplianceOpportunitySerializer(
+                        data=opportunity_data, 
+                        partial=True
+                    )
+                    opp_data_serializer.is_valid(raise_exception=True)
+                    
+                    opportunity = note.opportunity
+                    updated_json_data = opportunity.json_data or {}
+                    updated_json_data.update(opp_data_serializer.validated_data)
+                    opportunity.json_data = updated_json_data
+                    opportunity.save()
+                
+                # Dynamically update fields
+                for attr, value in serializer.validated_data.items():
+                    setattr(note, attr, value)
+                    
+                # Update the 'updated_by' field
+                note.updated_by = request.user
+                note.save()
+                
+                # Serialize the updated note
+                response_serializer = ComplianceNoteSerializer(note)
+                response_data = {
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "data": response_serializer.data,
+                }
 
+                return Response(response_data, status=status.HTTP_200_OK)
+                    
+        except ValidationError as e:  # Specific exceptions can be more useful
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class GenerateComplianceNoteAPIView(APIView):
      permission_classes = [IsAuthenticated]
 
