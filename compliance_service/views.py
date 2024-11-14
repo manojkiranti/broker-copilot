@@ -147,8 +147,9 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
         serializer = ComplianceNoteSerializer(note, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         
-        if request.user != note.created_by:
-            return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+        #TODO: fix by broker or processor assigned to the deal
+        # if request.user != note.created_by:
+        #     return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
         
         try:
             with transaction.atomic():
@@ -207,8 +208,9 @@ class ComplianceNoteUpdateView(APIView):
         if not note:
             return Response({"error": "Compliance note not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if request.user != note.created_by:
-            return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
+        # TODO: fix by broker or processor assigned to the deal
+        # if request.user != note.created_by:
+        #     return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
         
         serializer = ComplianceNoteSerializer(note, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
