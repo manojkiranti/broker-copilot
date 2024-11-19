@@ -36,9 +36,16 @@ class LenderChoices(models.TextChoices):
     
 class LoanPurposeChoices(models.TextChoices):
     INVESTMENT_PROPERTY = 'investment_property', 'Investment Property'
+    INVESTMENT_PROPERTY_PURCHASE = 'investment_property_purchase', 'Investment Property Purchase'
+    INVESTMENT_PROPERTY_PRE_APPROVAL = 'investment_property_pre_approval', 'Investment Property Pre-approval'
+    INVESTMENT_PROPERTY_REFINANCE = 'investment_property_refinance', 'Investment Property Refinance'
+    INVESTMENT_PROPERTY_REFINANCE_CASHOUT = 'investment_property_refinance_cashout', 'Investment Property Refinance + Cashout'
+    INVESTMENT_PROPERTY_CASHOUT_ONLY = 'investment_property_cashoutonly', 'Investment Property Cashout Only'
     INVESTMENT_VACANT_LAND = 'investment_vacant_land', 'Investment Vacant Land'
     INVESTMENT_HOUSE_AND_LAND_CONSTRUCTION = 'investment_house_and_land_construction', 'Investment House & Land Construction'
     OWNER_OCCUPIER_PROPERTY_PURCHASE = 'owner_occupier_property_purchase', 'Owner-occupier Property Purchase'
+    INV_INITIALLY_THEN_OO = 'inv_initially_then_oo', 'INV initially, then OO'
+    HOLIDAY_HOME = 'holiday_home', 'Holiday Home'
     OWNER_OCCUPIER_PROPERTY_PRE_APPROVAL = 'owner_occupier_property_pre_approval', 'Owner-occupier Property Pre-approval'
     OWNER_OCCUPIER_PROPERTY_REFINANCE = 'owner_occupier_property_refinance', 'Owner-occupier Property Refinance'
     OWNER_OCCUPIER_PROPERTY_REFINANCE_EQUITY_RELEASE = 'owner_occupier_property_refinance_equity_release', 'Owner-occupier Property Refinance + Equity Release'
