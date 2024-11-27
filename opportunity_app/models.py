@@ -98,7 +98,7 @@ class Opportunity(models.Model):
     json_data = models.JSONField(default=dict)
 
     primary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="primary_opportunities")
-    secondary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="secondary_opportunities")
+    secondary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True,  blank=True, related_name="secondary_opportunities")
     other_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, blank=True, related_name="other_opportunities")
    
     primary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="primary_processor_opportunity")
