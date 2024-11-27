@@ -92,16 +92,16 @@ class Opportunity(models.Model):
     name = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=20, choices=OpportunityType.choices)
     status = models.CharField(max_length=20, choices=OpportunityStatus.choices, default=OpportunityStatus.ACTIVE)
-    stage = models.ForeignKey(Stage, on_delete=models.SET_NULL, null=True, related_name='opportunities')
+    stage = models.ForeignKey(Stage, on_delete=models.SET_NULL, null=True, blank=True, related_name='opportunities')
     
     website_tracking_id = models.CharField(unique=True, max_length=255, null=True)
     json_data = models.JSONField(default=dict)
 
     primary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="primary_opportunities")
     secondary_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="secondary_opportunities")
-    other_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, related_name="other_opportunities")
+    other_contact = models.ForeignKey(ContactsOpportunity, on_delete=models.SET_NULL, null=True, blank=True, related_name="other_opportunities")
    
-    primary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="primary_processor_opportunity")
+    primary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="primary_processor_opportunity")
     secondary_processor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name="secondary_processor_opportunity")
     
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_opportunity")
