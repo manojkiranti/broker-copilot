@@ -1,8 +1,10 @@
 from django.db import models
-from enum import Enum
+import jsonschema
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from opportunity_app.models import Opportunity, LenderChoices
 from utils.constant import StatusChoices
+from .schema import COMPLIANCE_SCHEMA
 User = get_user_model()
 
 # Create your models here.
@@ -42,7 +44,27 @@ class ComplianceSystemPrompt(models.Model):
     
     def __str__(self):
         return self.prompt_type
-    
+
+def validate_data(value):
+    schema = COMPLIANCE_SCHEMA
+    if schema:
+        try:
+            jsonschema.validate(instance=value, schema=schema)
+        except jsonschema.ValidationError as e:
+            if e.validator == 'required' and 'is a required property' in e.message:
+                required_field = e.context[0].schema_path[1] if e.context else e.message.split("'")[1]
+                raise ValidationError({required_field: [f"{required_field} is required but missing."]})
+            elif e.path:
+                field = e.path[0]
+                raise ValidationError({field: [e.message]})
+            else:
+                raise ValidationError({'data': [e.message]})
+            
+        
+    else:
+        raise ValidationError(f"No schema defined")
+
+
 class Note(models.Model):
     class ComplianceNoteStatus(models.TextChoices):
         ACTIVE  = 'active', 'Active',
@@ -89,6 +111,7 @@ class Note(models.Model):
         STANDALONE = 'standalone', 'Standalone'
         CROSS_COLLATERALISED = 'cross_collateralised', 'Cross-Collateralised'
         MULTIPLE_SECURITIES = 'multiple_securities', 'Multiple Securities'
+    data = models.JSONField(default=dict)
     
     document_identification_method = models.CharField(max_length=50, choices=DocumentIdentificationChoices.choices, null=True, blank=True)
     client_interview_method = models.CharField(max_length=50, choices=ClientInterviewChoices.choices, null=True, blank=True )
@@ -116,6 +139,8 @@ class Note(models.Model):
     loan_structure_note = models.TextField(blank=True, null=True)
     loan_prioritised_note = models.TextField(blank=True, null=True)
     lender_loan_note = models.TextField(blank=True,null=True)
+    goals_objectives_note = models.TextField(blank=True, null=True)
+    loan_features_note = models.TextField(blank=True, null=True)
     
     status = models.CharField(max_length=20, choices=ComplianceNoteStatus.choices, default=ComplianceNoteStatus.ACTIVE)
     
@@ -127,6 +152,9 @@ class Note(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def clean(self):
+        validate_data(self.data)
+        
     @staticmethod
     def get_document_identification_choices():
         return [

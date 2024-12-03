@@ -1,7 +1,8 @@
 from rest_framework import serializers
+from django.core.exceptions import ValidationError
 from opportunity_app.models import LenderChoices, LoanPurposeChoices
 from opportunity_app.serializers import OpportunityNameSerializer, OpportunitySerializer
-from .models import Note, ComplianceSystemPrompt, CompliancePromptChoices
+from .models import Note, ComplianceSystemPrompt, CompliancePromptChoices, validate_data
 
 class UserContentSerializer(serializers.Serializer):
     user_content = serializers.CharField(max_length=1024, required=False, allow_blank=True)
@@ -22,6 +23,8 @@ class ComplianceNoteSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     opportunity_id = serializers.IntegerField()
     opportunity = OpportunitySerializer(read_only=True)
+    
+    data = serializers.JSONField()
     
     document_identification_method = serializers.ChoiceField(choices=Note.DocumentIdentificationChoices, allow_null=True, required=False)
     client_interview_method = serializers.ChoiceField(choices=Note.ClientInterviewChoices.choices, allow_null=True, required=False)
@@ -50,11 +53,23 @@ class ComplianceNoteSerializer(serializers.Serializer):
     loan_structure_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     loan_prioritised_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     lender_loan_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
+    goals_objectives_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
+    loan_features_note = serializers.CharField(style={'base_template': 'textarea.html'}, required=False, allow_blank=True)
     
     opportunity_data = ComplianceOpportunitySerializer(required=False)
     updated_by = serializers.EmailField(source='updated_by.email', read_only=True)
     created_by = serializers.EmailField(source='updated_by.email', read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+    
+    def validate(self, attrs):
+        data = attrs.get('data')
+
+        # Validate the data against the JSON Schema for the given step
+        try:
+            validate_data(data)
+        except ValidationError as e:
+            raise serializers.ValidationError(e.message_dict)
+        return attrs
 
 class SystemPromptSerializer(serializers.ModelSerializer):
     class Meta:

@@ -37,7 +37,7 @@ class ComplianceNoteListCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = ComplianceNoteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+        data = serializer.validated_data.get('data', {}) 
         
         try:
             with transaction.atomic():
@@ -60,6 +60,7 @@ class ComplianceNoteListCreateAPIView(APIView):
                     opportunity.save()
                 
                 note_data = {
+                    'data': data,
                     'document_identification_method': serializer.validated_data.get('document_identification_method'),
                     'client_interview_method': serializer.validated_data.get('client_interview_method'),
                     'credit_guide_provided': serializer.validated_data.get('credit_guide_provided'),
@@ -150,7 +151,8 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
         #TODO: fix by broker or processor assigned to the deal
         # if request.user != note.created_by:
         #     return Response({"error": "You don't have permission to update this Compliance Note."}, status=status.HTTP_403_FORBIDDEN)
-        
+        validated_data = serializer.validated_data
+        incoming_data = validated_data.get('data', None)
         try:
             with transaction.atomic():
                 opportunity = note.opportunity
@@ -161,7 +163,24 @@ class ComplianceNoteDetailUpdateDeleteAPIView(APIView):
                     updated_json_data.update(opp_data_serializer.validated_data)
                     opportunity.json_data = updated_json_data
                     opportunity.save()
-             
+                
+                if 'data' in validated_data:
+                    if incoming_data is None:
+                        # If 'data' is explicitly set to null, save as empty dict
+                        note.data = {}
+                    else:
+                        # Merge existing 'data' with incoming 'data' for partial updates
+                        existing_data = note.data or {}
+                        if isinstance(incoming_data, dict):
+                            updated_data = {**existing_data, **incoming_data}
+                        else:
+                            # If incoming_data is not a dict, replace it entirely
+                            updated_data = incoming_data
+                        note.data = updated_data
+                    
+                    # Validate the updated 'data' field
+                    note.clean()
+                    
                 note.updated_by = request.user
                 note.document_identification_method = serializer.validated_data.get('document_identification_method')
                 note.client_interview_method = serializer.validated_data.get('client_interview_method')
