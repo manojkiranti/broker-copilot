@@ -22,6 +22,7 @@ class LenderChoices(models.TextChoices):
     ST_GEORGE_BANK = 'st_george_bank', 'St. George Bank'
     MACQUARIE_BANK = 'macquarie_bank', 'Macquarie Bank'
     HSBC = 'hsbc', 'HSBC'
+    HSBC_AU = 'hsbc_au', 'HSBC AU'
     NAB = 'nab', 'NAB'
     SUNCORP = 'suncorp', 'Suncorp'
     WESTPAC = 'westpac', 'Westpac'
